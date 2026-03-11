@@ -2,119 +2,236 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>نظام إدارة العائلة المتطور</title>
+    <title>إدارة صندوق العشيرة المتطور</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <style>
-        :root {
-            --primary: #4a90e2;    /* أزرق للإيرادات */
-            --danger: #ff6b6b;     /* أحمر للمصروفات */
-            --success: #2ecc71;    /* أخضر للرصيد */
-            --bg: #f0f2f5;
-        }
-
-        body { font-family: 'Cairo', sans-serif; background-color: var(--bg); margin: 0; padding: 20px; color: #333; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; margin: 0; padding: 0; }
+        .admin-bar { background: #2c3e50; color: white; padding: 15px; text-align: center; position: sticky; top: 0; z-index: 1000; }
+        .stats-bar { background: #ffffff; padding: 20px; display: flex; justify-content: space-around; gap: 15px; border-bottom: 3px solid #3498db; flex-wrap: wrap; }
+        .stat-item { text-align: center; flex: 1; min-width: 180px; padding: 15px; border-radius: 12px; background: #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border: 1px solid #eee; }
+        .val { font-size: 1.3em; font-weight: bold; display: block; margin-top: 8px; }
+        .total-in { color: #27ae60; }
+        .total-out { color: #e74c3c; }
+        .total-remain { color: #fff; background: #2c3e50; padding: 8px; border-radius: 8px; margin-top: 5px; }
         
-        /* الخانات العليا بتصميم بطاقات ملونة */
-        .dashboard {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-        .card {
-            padding: 25px;
-            border-radius: 20px;
-            text-align: center; /* النصوص في الوسط */
-            color: white;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
-            transition: transform 0.3s;
-        }
-        .card:hover { transform: translateY(-5px); }
-        .income { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
-        .expense { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
-        .balance { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
-        .card h3 { margin: 0; font-size: 1.2em; opacity: 0.9; }
-        .card p { margin: 10px 0 0; font-size: 2em; font-weight: bold; }
-
-        /* حاوية البيانات */
-        .main-content {
-            background: white;
-            padding: 25px;
-            border-radius: 25px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-        }
-
-        /* تنسيق قسم العوائل */
-        .family-group {
-            border: 2px solid #eee;
-            border-radius: 15px;
-            margin-bottom: 20px;
-            overflow: hidden;
-        }
-        .family-head {
-            background: #f8f9fa;
-            padding: 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid #eee;
-        }
-        .family-members { padding: 10px 25px; background: #fff; }
-        .member-input {
-            border: 1px dashed #ccc;
-            padding: 8px;
-            margin: 5px 0;
-            border-radius: 8px;
-            width: 80%;
-        }
-
-        /* ميزة التلوين الأخضر عند الدفع */
-        .is-paid {
-            background-color: #d4edda !important; /* أخضر فاتح */
-            border-color: #c3e6cb !important;
-        }
-        .is-paid * { color: #155724 !important; }
-
-        /* سجل المصروفات */
-        .expense-table {
-            width: 100%;
-            margin-top: 20px;
-            border-collapse: separate;
-            border-spacing: 0 10px;
-        }
-        .expense-table th { padding: 15px; background: #f8f9fa; color: #777; font-weight: 500; }
-        .expense-table td { padding: 15px; background: #fff; border-bottom: 1px solid #eee; text-align: center;}
+        .search-container { background: #fff; padding: 15px; text-align: center; }
+        .search-input { width: 80%; max-width: 500px; padding: 12px; border: 2px solid #3498db; border-radius: 30px; outline: none; text-align: center; font-size: 1em; }
         
-        .delete-btn {
-            background: #ff4757;
-            color: white;
-            border: none;
-            padding: 5px 12px;
-            border-radius: 8px;
-            cursor: pointer;
-        }
+        .member-list { display: flex; flex-wrap: wrap; gap: 20px; padding: 20px; justify-content: center; }
+        .member-card { background: white; border-radius: 15px; padding: 20px; width: 280px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); border-top: 5px solid #3498db; }
+        .admin-mode-card { border-top: 5px solid #e67e22; background: #fffaf5; }
         
-        .admin-badge { background: #333; color: gold; padding: 2px 8px; border-radius: 5px; font-size: 0.7em; }
+        .edit-input { width: 100%; margin-bottom: 10px; padding: 10px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        .expense-list-item { font-size: 0.85em; background: #fff5f5; padding: 5px; margin-top: 5px; border-radius: 4px; border-right: 3px solid #e74c3c; text-align: right; }
+        
+        #loginOverlay { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; justify-content:center; align-items:center; }
+        .login-box { background: white; padding: 40px; border-radius: 20px; width: 320px; text-align: center; }
+        
+        button { cursor: pointer; border: none; border-radius: 6px; padding: 10px 15px; font-weight: bold; transition: 0.3s; }
+        .btn-add { background: #27ae60; color: white; width: 280px; font-size: 1.1em; margin: 20px; }
+        .btn-save { background: #3498db; color: white; width: 100%; }
+        .btn-del { background: #c0392b; color: white; width: 100%; margin-top: 10px; }
     </style>
 </head>
 <body>
 
-    <div class="dashboard">
-        <div class="card income">
-            <h3>إجمالي المقبوضات</h3>
-            <p>3,500 ريال</p>
-        </div>
-        <div class="card expense">
-            <h3>إجمالي المصروفات</h3>
-            <p id="totalExpDisplay">450 ريال</p>
-        </div>
-        <div class="card balance">
-            <h3>الرصيد المتبقي</h3>
-            <p>3,050 ريال</p>
+<div id="loginOverlay">
+    <div class="login-box">
+        <h2 style="margin-bottom:20px;">دخول لوحة التحكم</h2>
+        <input type="password" id="passInput" class="edit-input" placeholder="كلمة المرور" style="text-align:center;">
+        <button onclick="checkLogin()" class="btn-save" style="margin-bottom:10px;">دخول</button>
+        <button onclick="closeLogin()" style="background:#95a5a6; color:white; width:100%;">إغاء</button>
+    </div>
+</div>
+
+<div class="admin-bar">
+    <span id="modeText">📱 وضع المشاهدة</span>
+    <button id="loginBtn" onclick="openLogin()" style="background:#3498db; color:white; margin-right:15px;">دخول المدير 🔐</button>
+    <button id="logoutBtn" onclick="location.reload()" style="display:none; background:#95a5a6; color:white;">خروج 🚪</button>
+    <button id="exportBtn" onclick="exportToExcel()" style="display:none; background:#27ae60; color:white;">تقرير Excel 📥</button>
+</div>
+
+<div class="stats-bar">
+    <div class="stat-item">
+        الرصيد السابق (المدور)
+        <div id="prevBalanceView"><span id="prevBalanceVal" class="val" style="color:#7f8c8d">0</span></div>
+        <div id="prevBalanceEdit" style="display:none;">
+            <input type="number" id="prevBalanceIn" class="edit-input" placeholder="أدخل الرصيد">
+            <button onclick="savePrevBalance()" class="btn-save" style="padding:5px;">حفظ</button>
         </div>
     </div>
+    <div class="stat-item">
+        مجموع دفعات الشهر (دفعوا فقط)
+        <span id="monthlyTotal" class="val total-in">0</span>
+    </div>
+    <div class="stat-item">
+        إجمالي المصروفات
+        <span id="expenseTotal" class="val total-out">0</span>
+        <div id="expenseForm" style="display:none; margin-top:10px; border-top:1px solid #eee; padding-top:10px;">
+            <input type="number" id="expAmt" class="edit-input" placeholder="المبلغ">
+            <input type="text" id="expNote" class="edit-input" placeholder="السبب">
+            <button onclick="addExpense()" class="btn-save" style="background:#e74c3c;">إضافة صرف جديد</button>
+        </div>
+        <div id="expenseList" style="max-height:100px; overflow-y:auto; margin-top:10px;"></div>
+    </div>
+    <div class="stat-item" style="background:#f1c40f; border:none;">
+        صافي متوفر في الصندوق
+        <span id="finalBalance" class="val total-remain">0</span>
+    </div>
+</div>
 
-    <div class="main-content">
-        <h2>إدارة المشتركين <small style="font-size: 0.5em; color: gray;">(المدير فقط يملأ البيانات)</small></h2>
+<div class="search-container">
+    <input type="text" id="searchInput" class="search-input" placeholder="🔍 ابحث عن اسم ابن العشيرة..." onkeyup="render()">
+</div>
+
+<div id="membersList" class="member-list"></div>
+
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyCcd3U55cFj0QoZW4Fgk6RzHXsijv1mce0",
+        authDomain: "asheera-e3178.firebaseapp.com",
+        databaseURL: "https://asheera-e3178-default-rtdb.firebaseio.com",
+        projectId: "asheera-e3178",
+        storageBucket: "asheera-e3178.firebasestorage.app",
+        messagingSenderId: "863501168077",
+        appId: "1:863501168077:web:7539e176fa4f82140ee884"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    let isAdmin = false;
+    let membersData = [];
+    let financials = { prevBalance: 0, expenses: [] };
+
+    // Listeners
+    db.ref('members').on('value', (s) => { membersData = s.val() || []; updateUI(); });
+    db.ref('financials_v2').on('value', (s) => { financials = s.val() || { prevBalance: 0, expenses: [] }; updateUI(); });
+
+    function updateUI() {
+        // 1. Calculate Monthly (Paid Only)
+        let monthlyPaid = 0;
+        membersData.forEach(m => { if(m.paid) monthlyPaid += Number(m.amount || 0); });
         
-        <div class="family-group is-paid">
-            <div class="family-head">
+        // 2. Calculate Total Expenses
+        let totalExp = 0;
+        const expArray = Array.isArray(financials.expenses) ? financials.expenses : [];
+        expArray.forEach(e => { totalExp += Number(e.amount || 0); });
+
+        // 3. Final Balance
+        const prev = Number(financials.prevBalance || 0);
+        const final = (prev + monthlyPaid) - totalExp;
+
+        // Update Text
+        document.getElementById('prevBalanceVal').innerText = prev.toLocaleString() + " د.ع";
+        document.getElementById('monthlyTotal').innerText = monthlyPaid.toLocaleString() + " د.ع";
+        document.getElementById('expenseTotal').innerText = totalExp.toLocaleString() + " د.ع";
+        document.getElementById('finalBalance').innerText = final.toLocaleString() + " د.ع";
+
+        // Render Expense History
+        const listDiv = document.getElementById('expenseList');
+        listDiv.innerHTML = '';
+        expArray.reverse().forEach((e, idx) => {
+            listDiv.innerHTML += `<div class="expense-list-item">${e.amount.toLocaleString()} - ${e.note} <small>(${e.date})</small></div>`;
+        });
+
+        render();
+    }
+
+    function openLogin() { document.getElementById('loginOverlay').style.display = 'flex'; }
+    function closeLogin() { document.getElementById('loginOverlay').style.display = 'none'; }
+    function checkLogin() {
+        if(document.getElementById('passInput').value === "1234") {
+            isAdmin = true;
+            closeLogin();
+            document.getElementById('modeText').innerText = "✅ لوحة المدير";
+            document.getElementById('loginBtn').style.display = 'none';
+            document.getElementById('logoutBtn').style.display = 'inline-block';
+            document.getElementById('exportBtn').style.display = 'inline-block';
+            document.getElementById('prevBalanceEdit').style.display = 'block';
+            document.getElementById('prevBalanceView').style.display = 'none';
+            document.getElementById('expenseForm').style.display = 'block';
+            render();
+        } else { alert("خطأ في الرمز!"); }
+    }
+
+    function savePrevBalance() {
+        const val = document.getElementById('prevBalanceIn').value;
+        db.ref('financials_v2/prevBalance').set(Number(val));
+        alert("تم تحديث الرصيد السابق");
+    }
+
+    function addExpense() {
+        const amt = document.getElementById('expAmt').value;
+        const note = document.getElementById('expNote').value;
+        if(!amt) return;
+        
+        const newExp = {
+            amount: Number(amt),
+            note: note,
+            date: new Date().toLocaleDateString('ar-EG')
+        };
+        
+        const currentExp = Array.isArray(financials.expenses) ? financials.expenses : [];
+        currentExp.push(newExp);
+        db.ref('financials_v2/expenses').set(currentExp);
+        document.getElementById('expAmt').value = '';
+        document.getElementById('expNote').value = '';
+    }
+
+    function render() {
+        const container = document.getElementById('membersList');
+        const search = document.getElementById('searchInput').value.toLowerCase();
+        container.innerHTML = '';
+
+        membersData.forEach((m, i) => {
+            if(m.name.toLowerCase().includes(search)) {
+                const card = document.createElement('div');
+                card.className = `member-card ${isAdmin ? 'admin-mode-card' : ''}`;
+                if(!isAdmin) {
+                    card.innerHTML = `
+                        <h3>${m.name}</h3>
+                        <p>عدد الأفراد: ${m.count}</p>
+                        <p>المبلغ: ${Number(m.amount).toLocaleString()} د.ع</p>
+                        <p>الحالة: ${m.paid ? '<b style="color:green">✅ دافع</b>' : '<b style="color:red">❌ غير دافع</b>'}</p>
+                    `;
+                } else {
+                    card.innerHTML = `
+                        <input class="edit-input" value="${m.name}" onchange="updateM(${i},'name',this.value)">
+                        <input type="number" class="edit-input" value="${m.count}" onchange="updateM(${i},'count',this.value)">
+                        <input type="number" class="edit-input" value="${m.amount}" onchange="updateM(${i},'amount',this.value)">
+                        <select class="edit-input" onchange="updateM(${i},'paid',this.value==='true')">
+                            <option value="false" ${!m.paid?'selected':''}>غير دافع</option>
+                            <option value="true" ${m.paid?'selected':''}>دافع</option>
+                        </select>
+                        <button class="btn-del" onclick="deleteM(${i})">حذف</button>
+                    `;
+                }
+                container.appendChild(card);
+            }
+        });
+
+        if(isAdmin) {
+            const b = document.createElement('button');
+            b.className = 'btn-add'; b.innerText = '+ إضافة اسم جديد';
+            b.onclick = () => { membersData.push({name:'اسم جديد', count:1, amount:0, paid:false}); db.ref('members').set(membersData); };
+            container.appendChild(b);
+        }
+    }
+
+    function updateM(i, f, v) { membersData[i][f] = v; db.ref('members').set(membersData); }
+    function deleteM(i) { if(confirm("حذف؟")) { membersData.splice(i,1); db.ref('members').set(membersData); } }
+    
+    function exportToExcel() {
+        let csv = "\uFEFFالاسم,الحالة,المبلغ\n";
+        membersData.forEach(m => { csv += `${m.name},${m.paid?'دافع':'غير دافع'},${m.amount}\n`; });
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = "تقرير_الصندوق.csv";
+        link.click();
+    }
+</script>
+</body>
+</html>
