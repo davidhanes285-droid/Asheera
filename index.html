@@ -2,164 +2,177 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>نظام إدارة الصندوق المطور</title>
+    <title>نظام إدارة اشتراكات ومصروفات المجموعة</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; margin: 20px; }
-        .container { max-width: 900px; margin: auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; padding: 20px; }
+        .container { max-width: 1000px; margin: auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        h2 { text-align: center; color: #333; }
         
-        /* التنسيقات البارزة الجديدة */
-        .stat-card { padding: 15px; border-radius: 10px; margin-bottom: 10px; text-align: center; box-shadow: inset 0 0 10px rgba(0,0,0,0.05); }
-        
-        .previous-balance { background-color: #e3f2fd; border: 2px solid #2196f3; color: #0d47a1; font-size: 24px; font-weight: bold; }
-        .monthly-payments { background-color: #e8f5e9; border: 2px solid #4caf50; color: #1b5e20; font-size: 24px; font-weight: bold; }
-        .net-total { background-color: #fff3e0; border: 2px solid #ff9800; color: #e65100; font-size: 28px; font-weight: bold; }
+        /* تنسيق الخانات العليا */
+        .header-box {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        .header-box div {
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center; /* النصوص في الوسط */
+            font-weight: bold;
+            color: white;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .box-total { background-color: #3498db; } /* أزرق */
+        .box-spent { background-color: #e74c3c; }  /* أحمر */
+        .box-remain { background-color: #2ecc71; } /* أخضر */
 
+        /* الجداول */
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         th, td { border: 1px solid #ddd; padding: 12px; text-align: center; }
-        th { background-color: #333; color: white; }
-
-        /* تنسيقات حالة الدفع */
-        .status-paid { background-color: #c8e6c9 !important; color: #256029; font-weight: bold; border: 2px solid #4caf50; }
-        .status-unpaid { background-color: #ffcdd2 !important; color: #c62828; font-weight: bold; border: 2px solid #f44336; }
-
-        .btn-delete { background-color: #ff5252; color: white; border: none; padding: 5px 10px; cursor: pointer; border-radius: 4px; }
-        .btn-delete:hover { background-color: #d32f2f; }
+        th { background-color: #f8f9fa; color: #555; }
         
-        .form-group { margin-bottom: 15px; padding: 10px; border: 1px solid #eee; border-radius: 8px; }
-        button { cursor: pointer; padding: 10px 20px; background: #333; color: white; border: none; border-radius: 5px; }
+        .member-row { background-color: #fcfcfc; font-weight: bold; }
+        .family-member { background-color: #ffffff; font-size: 0.9em; }
+        .paid-green { background-color: #d4edda !important; color: #155724; }
+        
+        .btn { padding: 5px 10px; cursor: pointer; border: none; border-radius: 4px; }
+        .btn-add { background: #27ae60; color: white; }
+        .btn-delete { background: #c0392b; color: white; font-size: 0.8em; }
+        
+        .expense-log { margin-top: 30px; border-top: 2px solid #eee; padding-top: 20px; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2 style="text-align: center;">إدارة الصندوق المالي</h2>
+    <h2>لوحة التحكم المالية للمجموعة</h2>
 
-    <div class="stat-card previous-balance">
-        الرصيد السابق: <span id="display-prev-balance">0</span>
-    </div>
-    <div class="stat-card monthly-payments">
-        مجموع دفعات الشهر: <span id="display-monthly-in">0</span>
-    </div>
-    <div class="stat-card net-total">
-        صافي متوفر في الصندوق: <span id="display-net">0</span>
+    <div class="header-box">
+        <div class="box-total">إجمالي الاشتراكات<br><span id="totalIncome">0</span> ريال</div>
+        <div class="box-spent">إجمالي المصروفات<br><span id="totalExpenses">0</span> ريال</div>
+        <div class="box-remain">الرصيد المتبقي<br><span id="netBalance">0</span> ريال</div>
     </div>
 
-    <hr>
-
-    <div class="form-group">
-        <h3>إضافة مصروف جديد</h3>
-        <input type="text" id="expense-name" placeholder="بيان المصروف">
-        <input type="number" id="expense-amount" placeholder="المبلغ">
-        <button onclick="addExpense()">إضافة مصروف</button>
+    <div style="background: #fef9e7; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
+        <strong>إضافة مصروف جديد (للمدير):</strong>
+        <input type="text" id="expName" placeholder="بيان الصرف">
+        <input type="number" id="expAmount" placeholder="المبلغ">
+        <button class="btn btn-add" onclick="addExpense()">إضافة</button>
     </div>
 
-    <h3>قائمة المصاريف</h3>
-    <table id="expense-table">
+    <table>
         <thead>
             <tr>
-                <th>البيان</th>
-                <th>المبلغ</th>
-                <th>إجراء</th>
-            </tr>
-        </thead>
-        <tbody id="expense-list"></tbody>
-    </table>
-
-    <h3>حالة دفع الأعضاء</h3>
-    <table id="members-table">
-        <thead>
-            <tr>
-                <th>اسم العضو</th>
-                <th>المبلغ المقرر</th>
+                <th>الاسم (العضو وأفراد العائلة)</th>
                 <th>الحالة</th>
-                <th>تغيير الحالة</th>
+                <th>ملاحظات</th>
             </tr>
         </thead>
-        <tbody id="member-list">
-            </tbody>
+        <tbody id="membersTable">
+            <tr class="member-row paid-green">
+                <td>أحمد محمد (رئيس أسرة)</td>
+                <td>تم الدفع</td>
+                <td>-</td>
+            </tr>
+            <tr class="family-member paid-green">
+                <td>- الزوجة</td>
+                <td>تابع</td>
+                <td>تلقائي</td>
+            </tr>
+            <tr class="family-member paid-green">
+                <td>- الابن 1</td>
+                <td>تابع</td>
+                <td>تلقائي</td>
+            </tr>
+
+            <tr class="member-row">
+                <td>خالد علي (رئيس أسرة)</td>
+                <td>لم يدفع</td>
+                <td><button class="btn btn-add">تحديد كدافع</button></td>
+            </tr>
+            <tr class="family-member">
+                <td><input type="text" placeholder="اسم فرد عائلة..."></td>
+                <td>فرد عائلة</td>
+                <td>(للمدير فقط)</td>
+            </tr>
+        </tbody>
     </table>
+
+    <div class="expense-log">
+        <h3>سجل المصروفات التفصيلي</h3>
+        <table>
+            <thead>
+                <tr style="background-color: #34495e; color: white;">
+                    <th>التاريخ</th>
+                    <th>البيان</th>
+                    <th>المبلغ</th>
+                    <th>إجراء (للمدير)</th>
+                </tr>
+            </thead>
+            <tbody id="expenseBody">
+                </tbody>
+        </table>
+    </div>
 </div>
 
 <script>
-    // بيانات تجريبية
-    let prevBalance = 500;
-    let members = [
-        { id: 1, name: "أحمد محمد", amount: 100, paid: true },
-        { id: 2, name: "سالم علي", amount: 100, paid: false },
-        { id: 3, name: "خالد حسن", amount: 100, paid: true }
+    let expenses = [
+        { id: 1, date: '2026-03-12', name: 'شراء لوازم ضيافة', amount: 150 },
     ];
-    let expenses = [];
 
-    function updateUI() {
-        // تحديث الرصيد السابق
-        document.getElementById('display-prev-balance').innerText = prevBalance;
+    function renderExpenses() {
+        const body = document.getElementById('expenseBody');
+        body.innerHTML = '';
+        let total = 0;
 
-        // حساب مجموع دفعات الشهر (فقط للأعضاء الذين دفعوا)
-        let monthlyIn = members.filter(m => m.paid).reduce((sum, m) => sum + m.amount, 0);
-        document.getElementById('display-monthly-in').innerText = monthlyIn;
-
-        // حساب المصاريف
-        let totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
-
-        // الصافي النهائي
-        let net = (prevBalance + monthlyIn) - totalExpenses;
-        document.getElementById('display-net').innerText = net;
-
-        // تحديث جدول الأعضاء مع الألوان المطلوبة
-        const memberList = document.getElementById('member-list');
-        memberList.innerHTML = '';
-        members.forEach(m => {
-            const rowClass = m.paid ? 'status-paid' : 'status-unpaid';
-            memberList.innerHTML += `
-                <tr class="${rowClass}">
-                    <td>${m.name}</td>
-                    <td>${m.amount}</td>
-                    <td>${m.paid ? 'تم الدفع' : 'لم يدفع'}</td>
-                    <td><button onclick="togglePaid(${m.id})">تبديل</button></td>
-                </tr>
-            `;
-        });
-
-        // تحديث جدول المصاريف
-        const expenseList = document.getElementById('expense-list');
-        expenseList.innerHTML = '';
-        expenses.forEach((e, index) => {
-            expenseList.innerHTML += `
+        expenses.forEach((exp, index) => {
+            total += exp.amount;
+            body.innerHTML += `
                 <tr>
-                    <td>${e.name}</td>
-                    <td>${e.amount}</td>
-                    <td><button class="btn-delete" onclick="deleteExpense(${index})">حذف</button></td>
+                    <td>${exp.date}</td>
+                    <td>${exp.name}</td>
+                    <td>${exp.amount} ريال</td>
+                    <td><button class="btn btn-delete" onclick="deleteExpense(${index})">حذف 🗑️</button></td>
                 </tr>
             `;
         });
-    }
 
-    function togglePaid(id) {
-        let member = members.find(m => m.id === id);
-        member.paid = !member.paid;
-        updateUI();
+        document.getElementById('totalExpenses').innerText = total;
+        updateBalance();
     }
 
     function addExpense() {
-        let name = document.getElementById('expense-name').value;
-        let amount = parseFloat(document.getElementById('expense-amount').value);
-        if(name && amount) {
-            expenses.push({ name, amount });
-            updateUI();
-            document.getElementById('expense-name').value = '';
-            document.getElementById('expense-amount').value = '';
+        const name = document.getElementById('expName').value;
+        const amount = parseFloat(document.getElementById('expAmount').value);
+        const date = new Date().toISOString().split('T')[0];
+
+        if (name && amount) {
+            expenses.push({ date, name, amount });
+            renderExpenses();
+            document.getElementById('expName').value = '';
+            document.getElementById('expAmount').value = '';
+        } else {
+            alert("يرجى ملء البيانات بشكل صحيح");
         }
     }
 
     function deleteExpense(index) {
-        if(confirm("هل أنت متأكد من حذف هذا المصروف؟")) {
+        if (confirm("هل أنت متأكد من حذف هذا المصروف؟ (صلاحية مدير)")) {
             expenses.splice(index, 1);
-            updateUI();
+            renderExpenses();
         }
     }
 
-    // التشغيل الأول
-    updateUI();
+    function updateBalance() {
+        const income = 1500; // مثال لإجمالي الاشتراكات
+        document.getElementById('totalIncome').innerText = income;
+        const spent = parseFloat(document.getElementById('totalExpenses').innerText);
+        document.getElementById('netBalance').innerText = income - spent;
+    }
+
+    // التشغيل الأولي
+    renderExpenses();
 </script>
 
 </body>
