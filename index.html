@@ -19,7 +19,7 @@
         .item-out { background-color: #ffeaa7; border-bottom: 5px solid #e67e22; color: #d35400; }
         .item-final { background-color: #2c3e50; border-bottom: 5px solid #f1c40f; color: #ffffff; }
         .item-final .val { color: #f1c40f; }
-        /* الخانة الجديدة لإجمالي النفوس */
+        
         .item-total-people { background-color: #8e44ad; border-bottom: 5px solid #dcdde1; color: #ffffff; margin-top: 10px; width: 100%; flex: none; }
 
         .search-container { background: #fff; padding: 15px; text-align: center; }
@@ -114,7 +114,7 @@
 
         membersData.forEach(m => { 
             if(m.paid) monthlyPaid += Number(m.amount || 0); 
-            // حساب النفوس: رب الأسرة + عدد أفراد عائلته
+            // التعديل: حساب رب الأسرة (1) + عدد أفراد عائلته
             totalPeople += 1 + (m.family ? m.family.length : 0);
         });
         
@@ -160,15 +160,16 @@
                 const card = document.createElement('div');
                 card.className = `member-card ${m.paid ? 'paid-member' : ''} ${isAdmin ? 'admin-mode-card' : ''}`;
                 
-                const familyCount = m.family ? m.family.length : 0;
+                // التعديل هنا: إضافة 1 لرب الأسرة
+                const totalInFamily = 1 + (m.family ? m.family.length : 0);
 
                 if(!isAdmin) {
-                    let familyNames = m.family ? m.family.filter(n => n).join(" - ") : "لا يوجد";
+                    let familyNames = m.family ? m.family.filter(n => n).join(" - ") : "لا يوجد أفراد مضافين";
                     card.innerHTML = `
                         <h3 style="margin-bottom:5px;">${m.name}</h3>
-                        <p style="color:#2980b9; font-weight:bold; margin-top:0;">👨‍👩‍👧‍👦 عدد أفراد العائلة: ${familyCount}</p>
+                        <p style="color:#2c3e50; font-weight:bold; margin-top:0; background:#f1c40f; display:inline-block; padding:2px 8px; border-radius:5px;">👪 مجموع أفراد الأسرة: ${totalInFamily}</p>
                         <div class="family-section">
-                            <span class="family-title">الأسماء:</span>
+                            <span class="family-title">أسماء الأفراد:</span>
                             <small>${familyNames}</small>
                         </div>
                         <hr>
@@ -193,10 +194,11 @@
                         <label>رب الأسرة:</label>
                         <input class="edit-input" value="${m.name}" onchange="updateM(${i},'name',this.value)">
                         
-                        <p style="color:#2980b9; font-weight:bold;">عدد أفراد العائلة الحالي: ${familyCount}</p>
+                        <p style="color:#2980b9; font-weight:bold;">العدد الكلي (شامل رب الأسرة): ${totalInFamily}</p>
                         <div class="family-section">
+                            <span class="family-title">إضافة أفراد العائلة:</span>
                             ${familyInputs}
-                            <button class="btn-family" onclick="addFamilyMember(${i})">+ إضافة فرد للعائلة</button>
+                            <button class="btn-family" onclick="addFamilyMember(${i})">+ إضافة فرد</button>
                         </div>
 
                         <label>المبلغ الكلي:</label>
@@ -243,9 +245,9 @@
     function savePrevBalance() {
         const val = document.getElementById('prevBalanceIn').value;
         db.ref('financials_v2/prevBalance').set(Number(val));
-        alert("تم التحديث");
+        alert("تم تحديث الرصيد السابق بنجاح");
     }
-    function deleteM(i) { if(confirm("حذف؟")) { membersData.splice(i,1); db.ref('members').set(membersData); } }
+    function deleteM(i) { if(confirm("هل أنت متأكد من الحذف؟")) { membersData.splice(i,1); db.ref('members').set(membersData); } }
 </script>
 </body>
 </html>
