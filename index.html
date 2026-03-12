@@ -121,9 +121,7 @@
 <div class="header-section" id="bannerSection">
     <div class="header-text">
         <h1>صندوق الفاتحة لعام 2026</h1>
-        <h2>عشيرة العبودة</h2>
-        <h3>ال جهل</h3>
-        <label for="bannerUpload" id="bannerLabel" class="upload-btn">🖼️ تغيير شعار الصندوق</label>
+        <h2>قبيلة العبودة</h2> <h3>عشيرة ال جهل</h3> <label for="bannerUpload" id="bannerLabel" class="upload-btn">🖼️ تغيير شعار الصندوق</label>
         <input type="file" id="bannerUpload" style="display:none;" accept="image/*" onchange="uploadBannerPhoto(this)">
     </div>
     <div class="sheikh-photo-container">
@@ -206,7 +204,6 @@
     let financials = { prevBalance: 0, expenses: [] };
     const monthsNames = ["كانون الثاني", "شباط", "آذار", "نيسان", "أيار", "حزيران", "تموز", "آب", "أيلول", "تشرين الأول", "تشرين الثاني", "كانون الأول"];
 
-    // جلب البيانات والصور عند البداية
     db.ref('sheikhPhoto').on('value', (s) => { if(s.val()) document.getElementById('sheikhImg').src = s.val(); });
     db.ref('bannerPhoto').on('value', (s) => { if(s.val()) document.getElementById('bannerSection').style.backgroundImage = `url('${s.val()}')`; });
     db.ref('members').on('value', (s) => { membersData = s.val() || []; updateUI(); });
@@ -246,7 +243,7 @@
             document.getElementById('prevBalanceEdit').style.display = 'block';
             document.getElementById('adminExpensePanel').style.display = 'block';
             document.getElementById('uploadLabel').style.display = 'block';
-            document.getElementById('bannerLabel').style.display = 'block'; // تفعيل زر الشعار
+            document.getElementById('bannerLabel').style.display = 'block';
             updateUI();
         } else { alert("خطأ!"); }
     }
@@ -254,7 +251,6 @@
     function openLogin() { document.getElementById('loginOverlay').style.display = 'flex'; }
     function closeLogin() { document.getElementById('loginOverlay').style.display = 'none'; }
 
-    // بقية الدوال (updateUI, render, toggleMonth, إلخ) تبقى كما هي تماماً 100%
     function updateUI() {
         let monthlyPaid = 0;
         let totalPeople = 0;
@@ -346,4 +342,3 @@
 </script>
 </body>
 </html>
-
