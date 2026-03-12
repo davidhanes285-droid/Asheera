@@ -1,348 +1,395 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <title>إدارة صندوق العشيرة المتطور</title>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-    <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; margin: 0; padding: 0; }
-        
-        /* التعديل الجديد لمنطقة الشعار (Banner) */
-        .header-section { 
-            position: relative;
-            background: #ffffff; 
-            padding: 40px 60px; /* زيادة الحشو ليتناسب مع الشعار */
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            border-bottom: 2px solid #2c3e50;
-            background-size: cover;
-            background-position: center;
-            overflow: hidden;
-            z-index: 1;
-        }
+<meta charset="UTF-8">
+<title>إدارة صندوق العشيرة المتطور</title>
 
-        /* طبقة شفافة لجعل النص واضحاً فوق أي شعار */
-        .header-section::before {
-            content: "";
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(255, 255, 255, 0.7); /* تغشية بيضاء خفيفة */
-            z-index: -1;
-        }
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
-        .header-text { 
-            text-align: right; 
-            color: #2c3e50; 
-            line-height: 1.4;
-            z-index: 2;
-        }
-        .header-text h1 { margin: 0; font-size: 1.8em; font-weight: 900; }
-        .header-text h2 { margin: 0; font-size: 1.5em; color: #34495e; }
-        .header-text h3 { margin: 0; font-size: 1.3em; color: #7f8c8d; }
-        
-        .sheikh-photo-container { text-align: center; z-index: 2; }
-        .sheikh-img { 
-            width: 120px; 
-            height: 120px; 
-            border-radius: 15px; 
-            object-fit: cover; 
-            border: 3px solid #2c3e50;
-            background: #eee;
-            display: block;
-        }
-        
-        /* تنسيق أزرار الرفع */
-        .upload-btn { 
-            display: none; 
-            margin-top: 5px; 
-            font-size: 11px; 
-            background: #34495e; 
-            color: white; 
-            padding: 5px; 
-            border-radius: 5px; 
-            cursor: pointer;
-        }
+<style>
 
-        .admin-bar { background: #2c3e50; color: white; padding: 15px; text-align: center; position: sticky; top: 0; z-index: 1000; }
-        
-        .stats-bar { background: #ffffff; padding: 20px; display: flex; justify-content: space-around; gap: 15px; border-bottom: 3px solid #3498db; flex-wrap: wrap; }
-        .stat-item { text-align: center; flex: 1; min-width: 180px; padding: 15px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); font-weight: bold; color: #2c3e50; border: 1px solid #ddd; }
-        
-        .val { font-size: 1.5em; font-weight: 900; display: block; margin-top: 8px; }
-        
-        .item-prev { background-color: #ecf0f1; border-bottom: 5px solid #95a5a6; }
-        .item-in { background-color: #dff9fb; border-bottom: 5px solid #27ae60; color: #27ae60; }
-        .item-out { background-color: #ffeaa7; border-bottom: 5px solid #e67e22; color: #d35400; }
-        .item-final { background-color: #2c3e50; border-bottom: 5px solid #f1c40f; color: #ffffff; }
-        .item-final .val { color: #f1c40f; }
-        
-        .item-total-people { background-color: #8e44ad; border-bottom: 5px solid #dcdde1; color: #ffffff; margin-top: 10px; width: 100%; flex: none; display: flex; justify-content: space-between; align-items: center; padding: 15px 30px; box-sizing: border-box; }
+body{
+font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;
+background-color:#f0f2f5;
+margin:0;
+padding:0;
+}
 
-        .search-container { background: #fff; padding: 15px; text-align: center; }
-        .search-input { width: 80%; max-width: 500px; padding: 12px; border: 2px solid #3498db; border-radius: 30px; outline: none; text-align: center; font-size: 1em; }
-        
-        .member-list { display: flex; flex-wrap: wrap; gap: 20px; padding: 20px; justify-content: center; }
-        
-        .member-card { background: white; border-radius: 15px; padding: 20px; width: 320px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); border-top: 5px solid #3498db; transition: 0.3s; }
-        .paid-member { background-color: #e8f8f5 !important; border-top: 5px solid #27ae60 !important; }
-        .unpaid-member { background-color: #fdedec !important; border-top: 5px solid #e74c3c !important; }
-        
-        .admin-mode-card { border-top: 5px solid #e67e22; }
-        .family-head-name { font-size: 1.6em; font-weight: 900; color: #2c3e50; margin-bottom: 8px; display: block; }
+/* الهيدر */
 
-        .family-section { margin-top: 10px; padding: 10px; background: rgba(0,0,0,0.03); border-radius: 8px; }
-        .family-title { font-size: 0.9em; font-weight: bold; color: #7f8c8d; margin-bottom: 5px; display: block; }
-        .family-input-container { display: flex; align-items: center; gap: 5px; margin-bottom: 5px; }
-        .family-input { flex: 1; padding: 5px; border: 1px solid #ccc; border-radius: 4px; font-size: 0.85em; }
+.header-section{
+background:#ffffff;
+padding:20px 40px;
+display:flex;
+justify-content:space-between;
+align-items:center;
+border-bottom:2px solid #2c3e50;
+gap:20px;
+}
 
-        .edit-input { width: 100%; margin-bottom: 10px; padding: 10px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-weight: bold; }
-        
-        .months-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; margin-top: 10px; }
-        .month-btn { font-size: 0.75em; padding: 5px; background: #eee; border-radius: 4px; cursor: pointer; text-align: center; border: 1px solid #ddd; }
-        .month-btn.selected { background: #8e44ad; color: white; border-color: #7d3c98; }
+.header-text{
+text-align:right;
+color:#2c3e50;
+line-height:1.4;
+}
 
-        .expense-log { font-size: 0.8em; text-align: right; background: #fff; border: 1px solid #eee; padding: 8px; margin-top: 5px; border-radius: 5px; position: relative; color: #333; }
-        .btn-del-exp { background: #e74c3c; color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; float: left; cursor: pointer; }
+.header-text h1{margin:0;font-size:1.8em;font-weight:900;}
+.header-text h2{margin:0;font-size:1.5em;color:#34495e;}
+.header-text h3{margin:0;font-size:1.3em;color:#7f8c8d;}
 
-        #loginOverlay { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; justify-content:center; align-items:center; }
-        .login-box { background: white; padding: 40px; border-radius: 20px; width: 320px; text-align: center; }
-        
-        button { cursor: pointer; border: none; border-radius: 6px; padding: 10px 15px; font-weight: bold; transition: 0.3s; }
-        .btn-add { background: #27ae60; color: white; width: 280px; font-size: 1.1em; margin: 20px; }
-        .btn-save { background: #3498db; color: white; width: 100%; }
-        .btn-del { background: #c0392b; color: white; width: 100%; margin-top: 10px; }
-        .btn-family { background: #9b59b6; color: white; font-size: 0.8em; margin-bottom: 10px; width: 100%; }
-    </style>
+/* Banner العشيرة */
+
+.banner-container{
+flex:1;
+display:flex;
+justify-content:center;
+}
+
+.banner-img{
+width:420px;
+height:120px;
+object-fit:cover;
+border-radius:12px;
+border:3px solid #2c3e50;
+box-shadow:0 4px 8px rgba(0,0,0,0.15);
+}
+
+/* صورة الشيخ */
+
+.sheikh-photo-container{text-align:center;}
+
+.sheikh-img{
+width:120px;
+height:120px;
+border-radius:15px;
+object-fit:cover;
+border:3px solid #2c3e50;
+background:#eee;
+display:block;
+}
+
+.upload-btn{
+display:none;
+margin-top:5px;
+font-size:12px;
+background:#34495e;
+color:white;
+padding:5px;
+border-radius:5px;
+cursor:pointer;
+}
+
+/* شريط الإدارة */
+
+.admin-bar{
+background:#2c3e50;
+color:white;
+padding:15px;
+text-align:center;
+position:sticky;
+top:0;
+z-index:1000;
+}
+
+/* الإحصائيات */
+
+.stats-bar{
+background:#ffffff;
+padding:20px;
+display:flex;
+justify-content:space-around;
+gap:15px;
+border-bottom:3px solid #3498db;
+flex-wrap:wrap;
+}
+
+.stat-item{
+text-align:center;
+flex:1;
+min-width:180px;
+padding:15px;
+border-radius:12px;
+box-shadow:0 4px 6px rgba(0,0,0,0.1);
+font-weight:bold;
+color:#2c3e50;
+border:1px solid #ddd;
+}
+
+.val{
+font-size:1.5em;
+font-weight:900;
+display:block;
+margin-top:8px;
+}
+
+.item-prev{background-color:#ecf0f1;border-bottom:5px solid #95a5a6;}
+.item-in{background-color:#dff9fb;border-bottom:5px solid #27ae60;color:#27ae60;}
+.item-out{background-color:#ffeaa7;border-bottom:5px solid #e67e22;color:#d35400;}
+.item-final{background-color:#2c3e50;border-bottom:5px solid #f1c40f;color:#ffffff;}
+.item-final .val{color:#f1c40f;}
+
+.item-total-people{
+background-color:#8e44ad;
+border-bottom:5px solid #dcdde1;
+color:#ffffff;
+margin-top:10px;
+width:100%;
+flex:none;
+display:flex;
+justify-content:space-between;
+align-items:center;
+padding:15px 30px;
+box-sizing:border-box;
+}
+
+/* البحث */
+
+.search-container{
+background:#fff;
+padding:15px;
+text-align:center;
+}
+
+.search-input{
+width:80%;
+max-width:500px;
+padding:12px;
+border:2px solid #3498db;
+border-radius:30px;
+outline:none;
+text-align:center;
+font-size:1em;
+}
+
+/* البطاقات */
+
+.member-list{
+display:flex;
+flex-wrap:wrap;
+gap:20px;
+padding:20px;
+justify-content:center;
+}
+
+.member-card{
+background:white;
+border-radius:15px;
+padding:20px;
+width:320px;
+box-shadow:0 4px 10px rgba(0,0,0,0.1);
+border-top:5px solid #3498db;
+transition:0.3s;
+}
+
+.paid-member{background-color:#e8f8f5!important;border-top:5px solid #27ae60!important;}
+.unpaid-member{background-color:#fdedec!important;border-top:5px solid #e74c3c!important;}
+
+.family-head-name{
+font-size:1.6em;
+font-weight:900;
+color:#2c3e50;
+margin-bottom:8px;
+display:block;
+}
+
+.family-section{
+margin-top:10px;
+padding:10px;
+background:rgba(0,0,0,0.03);
+border-radius:8px;
+}
+
+.family-title{
+font-size:0.9em;
+font-weight:bold;
+color:#7f8c8d;
+margin-bottom:5px;
+display:block;
+}
+
+.edit-input{
+width:100%;
+margin-bottom:10px;
+padding:10px;
+border:1px solid #ddd;
+border-radius:8px;
+box-sizing:border-box;
+font-weight:bold;
+}
+
+.months-grid{
+display:grid;
+grid-template-columns:repeat(3,1fr);
+gap:5px;
+margin-top:10px;
+}
+
+.month-btn{
+font-size:0.75em;
+padding:5px;
+background:#eee;
+border-radius:4px;
+cursor:pointer;
+text-align:center;
+border:1px solid #ddd;
+}
+
+.month-btn.selected{
+background:#8e44ad;
+color:white;
+border-color:#7d3c98;
+}
+
+button{
+cursor:pointer;
+border:none;
+border-radius:6px;
+padding:10px 15px;
+font-weight:bold;
+}
+
+.btn-add{
+background:#27ae60;
+color:white;
+width:280px;
+font-size:1.1em;
+margin:20px;
+}
+
+.btn-save{
+background:#3498db;
+color:white;
+width:100%;
+}
+
+.btn-del{
+background:#c0392b;
+color:white;
+width:100%;
+margin-top:10px;
+}
+
+</style>
 </head>
+
 <body>
 
-<div class="header-section" id="bannerSection">
-    <div class="header-text">
-        <h1>صندوق الفاتحة لعام 2026</h1>
-        <h2>عشيرة العبودة</h2>
-        <h3>ال جهل</h3>
-        <label for="bannerUpload" id="bannerLabel" class="upload-btn">🖼️ تغيير شعار الصندوق</label>
-        <input type="file" id="bannerUpload" style="display:none;" accept="image/*" onchange="uploadBannerPhoto(this)">
-    </div>
-    <div class="sheikh-photo-container">
-        <img id="sheikhImg" src="https://via.placeholder.com/120?text=صورة+الشيخ" class="sheikh-img">
-        <label for="sheikhUpload" id="uploadLabel" class="upload-btn">📷 تغيير صورة الشيخ</label>
-        <input type="file" id="sheikhUpload" style="display:none;" accept="image/*" onchange="uploadSheikhPhoto(this)">
-    </div>
+<!-- الهيدر -->
+
+<div class="header-section">
+
+<div class="header-text">
+<h1>صندوق الفاتحة لعام 2026</h1>
+<h2>عشيرة العبودة</h2>
+<h3>ال جهل</h3>
 </div>
 
-<div id="loginOverlay">
-    <div class="login-box">
-        <h2 style="margin-bottom:20px;">دخول لوحة التحكم</h2>
-        <input type="password" id="passInput" class="edit-input" placeholder="كلمة المرور" style="text-align:center;">
-        <button onclick="checkLogin()" class="btn-save" style="margin-bottom:10px;">دخول</button>
-        <button onclick="closeLogin()" style="background:#95a5a6; color:white; width:100%;">إلغاء</button>
-    </div>
+<div class="banner-container">
+<img src="banner-alabooda.jpg" class="banner-img">
 </div>
+
+<div class="sheikh-photo-container">
+<img id="sheikhImg" src="https://via.placeholder.com/120?text=صورة+الشيخ" class="sheikh-img">
+<label for="sheikhUpload" id="uploadLabel" class="upload-btn">تغيير صورة الشيخ 📷</label>
+<input type="file" id="sheikhUpload" style="display:none;" accept="image/*" onchange="uploadSheikhPhoto(this)">
+</div>
+
+</div>
+
+<!-- شريط الإدارة -->
 
 <div class="admin-bar">
-    <span id="modeText">📱 وضع المشاهدة</span>
-    <button id="loginBtn" onclick="openLogin()" style="background:#3498db; color:white; margin-right:15px;">دخول المدير 🔐</button>
-    <button id="logoutBtn" onclick="location.reload()" style="display:none; background:#95a5a6; color:white;">خروج 🚪</button>
+<span id="modeText">📱 وضع المشاهدة</span>
+<button id="loginBtn" onclick="openLogin()" style="background:#3498db;color:white;margin-right:15px;">دخول المدير 🔐</button>
+<button id="logoutBtn" onclick="location.reload()" style="display:none;background:#95a5a6;color:white;">خروج 🚪</button>
 </div>
 
-<div class="stats-bar">
-    <div class="stat-item item-prev">الرصيد السابق<span id="prevBalanceVal" class="val">0</span></div>
-    <div class="stat-item item-in">مجموع دفعات الشهر<span id="monthlyTotal" class="val">0</span></div>
-    <div class="stat-item item-out">
-        إجمالي المصروفات
-        <span id="expenseTotal" class="val">0</span>
-        <div id="adminExpensePanel" style="display:none; margin-top:10px; border-top:1px solid #d35400; padding-top:10px;">
-            <input type="number" id="expAmt" class="edit-input" placeholder="المبلغ">
-            <input type="text" id="expNote" class="edit-input" placeholder="سبب الصرف">
-            <input type="date" id="expDate" class="edit-input">
-            <button onclick="addExpense()" class="btn-save" style="background:#e67e22;">إضافة مصروف</button>
-        </div>
-        <div id="expenseDisplay" style="max-height:150px; overflow-y:auto; margin-top:10px;"></div>
-    </div>
-    <div class="stat-item item-final">صافي المتوفر بالصندوق<span id="finalBalance" class="val">0</span></div>
-    
-    <div class="item-total-people">
-        <div style="text-align: right;">
-            إجمالي عدد النفوس
-            <span id="totalPeopleCount" style="font-size: 1.5em; font-weight: 900; display: block;">0</span>
-        </div>
-        <div style="text-align: left;">
-            الشهر الحالي
-            <span id="currentDateDisplay" style="font-size: 1.5em; font-weight: 900; display: block; color: #f1c40f;">-</span>
-        </div>
-    </div>
+<!-- الإحصائيات -->
 
-    <div id="prevBalanceEdit" style="display:none; width:100%; text-align:center; margin-top:10px;">
-        <input type="number" id="prevBalanceIn" class="edit-input" style="width:200px" placeholder="تعديل الرصيد السابق">
-        <button onclick="savePrevBalance()" class="btn-save" style="width:100px;">حفظ</button>
-    </div>
+<div class="stats-bar">
+
+<div class="stat-item item-prev">
+الرصيد السابق
+<span id="prevBalanceVal" class="val">0</span>
+</div>
+
+<div class="stat-item item-in">
+مجموع دفعات الشهر
+<span id="monthlyTotal" class="val">0</span>
+</div>
+
+<div class="stat-item item-out">
+إجمالي المصروفات
+<span id="expenseTotal" class="val">0</span>
+</div>
+
+<div class="stat-item item-final">
+صافي المتوفر بالصندوق
+<span id="finalBalance" class="val">0</span>
+</div>
+
 </div>
 
 <div class="search-container">
-    <input type="text" id="searchInput" class="search-input" placeholder="🔍 ابحث عن اسم رب الأسرة..." onkeyup="render()">
+<input type="text" id="searchInput" class="search-input" placeholder="🔍 ابحث عن اسم رب الأسرة..." onkeyup="render()">
 </div>
 
 <div id="membersList" class="member-list"></div>
 
 <script>
-    const firebaseConfig = {
-        apiKey: "AIzaSyCcd3U55cFj0QoZW4Fgk6RzHXsijv1mce0",
-        authDomain: "asheera-e3178.firebaseapp.com",
-        databaseURL: "https://asheera-e3178-default-rtdb.firebaseio.com",
-        projectId: "asheera-e3178",
-        storageBucket: "asheera-e3178.firebasestorage.app",
-        messagingSenderId: "863501168077",
-        appId: "1:863501168077:web:7539e176fa4f82140ee884"
-    };
 
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+const firebaseConfig={
+apiKey:"AIzaSyCcd3U55cFj0QoZW4Fgk6RzHXsijv1mce0",
+authDomain:"asheera-e3178.firebaseapp.com",
+databaseURL:"https://asheera-e3178-default-rtdb.firebaseio.com",
+projectId:"asheera-e3178",
+storageBucket:"asheera-e3178.firebasestorage.app",
+messagingSenderId:"863501168077",
+appId:"1:863501168077:web:7539e176fa4f82140ee884"
+};
 
-    let isAdmin = false;
-    let membersData = [];
-    let financials = { prevBalance: 0, expenses: [] };
-    const monthsNames = ["كانون الثاني", "شباط", "آذار", "نيسان", "أيار", "حزيران", "تموز", "آب", "أيلول", "تشرين الأول", "تشرين الثاني", "كانون الأول"];
+firebase.initializeApp(firebaseConfig);
+const db=firebase.database();
 
-    // جلب البيانات والصور عند البداية
-    db.ref('sheikhPhoto').on('value', (s) => { if(s.val()) document.getElementById('sheikhImg').src = s.val(); });
-    db.ref('bannerPhoto').on('value', (s) => { if(s.val()) document.getElementById('bannerSection').style.backgroundImage = `url('${s.val()}')`; });
-    db.ref('members').on('value', (s) => { membersData = s.val() || []; updateUI(); });
-    db.ref('financials_v2').on('value', (s) => { financials = s.val() || { prevBalance: 0, expenses: [] }; updateUI(); });
+let membersData=[];
+let isAdmin=false;
 
-    function uploadBannerPhoto(input) {
-        if (input.files && input.files[0]) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const base64Image = e.target.result;
-                db.ref('bannerPhoto').set(base64Image);
-                document.getElementById('bannerSection').style.backgroundImage = `url('${base64Image}')`;
-            };
-            reader.readAsDataURL(input.files[0]);
-        }
-    }
+db.ref('members').on('value',(s)=>{
+membersData=s.val()||[];
+render();
+});
 
-    function uploadSheikhPhoto(input) {
-        if (input.files && input.files[0]) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const base64Image = e.target.result;
-                db.ref('sheikhPhoto').set(base64Image);
-                document.getElementById('sheikhImg').src = base64Image;
-            };
-            reader.readAsDataURL(input.files[0]);
-        }
-    }
+function render(){
 
-    function checkLogin() {
-        if(document.getElementById('passInput').value === "1234") {
-            isAdmin = true;
-            closeLogin();
-            document.getElementById('modeText').innerText = "✅ لوحة المدير";
-            document.getElementById('loginBtn').style.display = 'none';
-            document.getElementById('logoutBtn').style.display = 'inline-block';
-            document.getElementById('prevBalanceEdit').style.display = 'block';
-            document.getElementById('adminExpensePanel').style.display = 'block';
-            document.getElementById('uploadLabel').style.display = 'block';
-            document.getElementById('bannerLabel').style.display = 'block'; // تفعيل زر الشعار
-            updateUI();
-        } else { alert("خطأ!"); }
-    }
+const container=document.getElementById('membersList');
+const search=document.getElementById('searchInput').value.toLowerCase();
 
-    function openLogin() { document.getElementById('loginOverlay').style.display = 'flex'; }
-    function closeLogin() { document.getElementById('loginOverlay').style.display = 'none'; }
+container.innerHTML='';
 
-    // بقية الدوال (updateUI, render, toggleMonth, إلخ) تبقى كما هي تماماً 100%
-    function updateUI() {
-        let monthlyPaid = 0;
-        let totalPeople = 0;
-        membersData.forEach(m => { 
-            const peopleCount = 1 + (m.family ? m.family.length : 0);
-            totalPeople += peopleCount;
-            const monthCount = (Array.isArray(m.payMonths) && m.payMonths.length > 0) ? m.payMonths.length : 0;
-            const calculatedTotal = peopleCount * 2000 * monthCount;
-            if(m.paid) monthlyPaid += calculatedTotal; 
-        });
-        let totalExp = 0;
-        const expArray = Array.isArray(financials.expenses) ? financials.expenses : [];
-        const expDiv = document.getElementById('expenseDisplay');
-        expDiv.innerHTML = '';
-        expArray.forEach((e, idx) => { 
-            totalExp += Number(e.amount || 0); 
-            let delBtn = isAdmin ? `<span class="btn-del-exp" onclick="deleteExpense(${idx})">حذف ❌</span>` : '';
-            expDiv.innerHTML += `<div class="expense-log">${delBtn}<b>${Number(e.amount).toLocaleString()}</b> - ${e.note} <br><small>${e.date}</small></div>`;
-        });
-        document.getElementById('prevBalanceVal').innerText = Number(financials.prevBalance || 0).toLocaleString() + " د.ع";
-        document.getElementById('monthlyTotal').innerText = monthlyPaid.toLocaleString() + " د.ع";
-        document.getElementById('expenseTotal').innerText = totalExp.toLocaleString() + " د.ع";
-        document.getElementById('finalBalance').innerText = ((Number(financials.prevBalance || 0) + monthlyPaid) - totalExp).toLocaleString() + " د.ع";
-        document.getElementById('totalPeopleCount').innerText = totalPeople + " فرد";
-        const now = new Date();
-        document.getElementById('currentDateDisplay').innerText = monthsNames[now.getMonth()] + " " + now.getFullYear();
-        render();
-    }
+membersData.forEach((m,i)=>{
 
-    function render() {
-        const container = document.getElementById('membersList');
-        const search = document.getElementById('searchInput').value.toLowerCase();
-        container.innerHTML = '';
-        membersData.forEach((m, i) => {
-            if(m.name.toLowerCase().includes(search)) {
-                const cardColorClass = m.paid ? 'paid-member' : 'unpaid-member';
-                const card = document.createElement('div');
-                card.className = `member-card ${cardColorClass} ${isAdmin ? 'admin-mode-card' : ''}`;
-                const totalInFamily = 1 + (m.family ? m.family.length : 0);
-                const monthCount = (Array.isArray(m.payMonths) && m.payMonths.length > 0) ? m.payMonths.length : 0;
-                const calculatedAmount = totalInFamily * 2000 * monthCount;
-                if(m.amount !== calculatedAmount) { updateM(i, 'amount', calculatedAmount); }
-                let monthsDisplay = (monthCount > 0) ? m.payMonths.join(" - ") : "---";
-                if(!isAdmin) {
-                    let familyNames = m.family ? m.family.filter(n => n).join(" - ") : "لا يوجد أفراد مضافين";
-                    card.innerHTML = `<span class="family-head-name">${m.name}</span><p style="color:#2c3e50; font-weight:bold; margin-top:0;">👪 مجموع أفراد الأسرة: ${totalInFamily}</p><div class="family-section"><span class="family-title">الأسماء:</span><small>${familyNames}</small></div><hr><p><b>المبلغ الكلي:</b> ${Number(calculatedAmount).toLocaleString()} د.ع</p><p><b>دفع عن أشهر:</b> <br><span style="color:#8e44ad; font-weight:bold;">${monthsDisplay}</span></p><p><b>الحالة:</b> ${m.paid ? '<b style="color:green">✅ دافع</b>' : '<b style="color:red">❌ غير دافع</b>'}</p>`;
-                } else {
-                    let familyInputs = '';
-                    if(m.family) { m.family.forEach((fName, fIdx) => { familyInputs += `<div class="family-input-container"><input class="family-input" value="${fName}" onchange="updateFamily(${i}, ${fIdx}, this.value)"><span style="cursor:pointer" onclick="deleteFamilyMember(${i}, ${fIdx})">❌</span></div>`; }); }
-                    let monthsHtml = `<div class="months-grid">`;
-                    monthsNames.forEach(month => { const isSelected = Array.isArray(m.payMonths) && m.payMonths.includes(month); monthsHtml += `<div class="month-btn ${isSelected ? 'selected' : ''}" onclick="toggleMonth(${i}, '${month}')">${month}</div>`; });
-                    monthsHtml += `</div>`;
-                    card.innerHTML = `<label>رب الأسرة (الاسم):</label><input class="edit-input" style="font-size:1.2em" value="${m.name}" onchange="updateM(${i},'name',this.value)"><div class="family-section"><span class="family-title">أفراد العائلة:</span>${familyInputs}<button class="btn-family" onclick="addFamilyMember(${i})">+ إضافة فرد</button></div><label>دفع عن أشهر:</label>${monthsHtml}<label style="display:block; margin-top:10px;">المبلغ: ${Number(calculatedAmount).toLocaleString()} د.ع</label><select class="edit-input" onchange="updateM(${i},'paid',this.value==='true')"><option value="false" ${!m.paid?'selected':''}>غير دافع</option><option value="true" ${m.paid?'selected':''}>دافع</option></select><button class="btn-del" onclick="deleteM(${i})">حذف السجل</button>`;
-                }
-                container.appendChild(card);
-            }
-        });
-        if(isAdmin) {
-            const b = document.createElement('button');
-            b.className = 'btn-add'; b.innerText = '+ إضافة رب أسرة جديد';
-            b.onclick = () => { membersData.push({name:'اسم جديد', amount:0, paid:false, family:[], payMonths:[]}); db.ref('members').set(membersData); };
-            container.appendChild(b);
-        }
-    }
+if(m.name.toLowerCase().includes(search)){
 
-    function toggleMonth(memberIdx, monthName) {
-        if(!Array.isArray(membersData[memberIdx].payMonths)) membersData[memberIdx].payMonths = [];
-        const index = membersData[memberIdx].payMonths.indexOf(monthName);
-        if(index > -1) membersData[memberIdx].payMonths.splice(index, 1);
-        else { membersData[memberIdx].payMonths.push(monthName); membersData[memberIdx].payMonths.sort((a, b) => monthsNames.indexOf(a) - monthsNames.indexOf(b)); }
-        db.ref('members').set(membersData);
-    }
-    function updateM(i, f, v) { membersData[i][f] = v; db.ref('members').set(membersData); }
-    function addFamilyMember(mIdx) { if(!membersData[mIdx].family) membersData[mIdx].family = []; membersData[mIdx].family.push(""); db.ref('members').set(membersData); }
-    function updateFamily(mIdx, fIdx, val) { membersData[mIdx].family[fIdx] = val; db.ref('members').set(membersData); }
-    function deleteFamilyMember(mIdx, fIdx) { membersData[mIdx].family.splice(fIdx, 1); db.ref('members').set(membersData); }
-    function addExpense() {
-        const amt = document.getElementById('expAmt').value;
-        const note = document.getElementById('expNote').value;
-        const date = document.getElementById('expDate').value;
-        if(!amt || !date) return;
-        const currentExp = Array.isArray(financials.expenses) ? financials.expenses : [];
-        currentExp.push({ amount: Number(amt), note: note, date: date });
-        db.ref('financials_v2/expenses').set(currentExp);
-    }
-    function deleteExpense(idx) { if(confirm("حذف؟")) { financials.expenses.splice(idx, 1); db.ref('financials_v2/expenses').set(financials.expenses); } }
-    function savePrevBalance() { db.ref('financials_v2/prevBalance').set(Number(document.getElementById('prevBalanceIn').value)); alert("تم الحفظ"); }
-    function deleteM(i) { if(confirm("حذف؟")) { membersData.splice(i,1); db.ref('members').set(membersData); } }
+const card=document.createElement('div');
+
+card.className='member-card '+(m.paid?'paid-member':'unpaid-member');
+
+card.innerHTML=`
+<span class="family-head-name">${m.name}</span>
+<p><b>المبلغ:</b> ${Number(m.amount||0).toLocaleString()} د.ع</p>
+<p><b>الحالة:</b> ${m.paid?'<b style="color:green">✅ دافع</b>':'<b style="color:red">❌ غير دافع</b>'}</p>
+`;
+
+container.appendChild(card);
+
+}
+
+});
+
+}
+
 </script>
+
 </body>
 </html>
