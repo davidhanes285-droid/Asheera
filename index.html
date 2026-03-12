@@ -19,7 +19,9 @@
         .item-out { background-color: #ffeaa7; border-bottom: 5px solid #e67e22; color: #d35400; }
         .item-final { background-color: #2c3e50; border-bottom: 5px solid #f1c40f; color: #ffffff; }
         .item-final .val { color: #f1c40f; }
-        .item-total-people { background-color: #8e44ad; border-bottom: 5px solid #dcdde1; color: #ffffff; margin-top: 10px; width: 100%; flex: none; }
+        
+        /* خانة النفوس والتاريخ */
+        .item-total-people { background-color: #8e44ad; border-bottom: 5px solid #dcdde1; color: #ffffff; margin-top: 10px; width: 100%; flex: none; display: flex; justify-content: space-between; align-items: center; padding: 15px 30px; box-sizing: border-box; }
 
         .search-container { background: #fff; padding: 15px; text-align: center; }
         .search-input { width: 80%; max-width: 500px; padding: 12px; border: 2px solid #3498db; border-radius: 30px; outline: none; text-align: center; font-size: 1em; }
@@ -31,12 +33,13 @@
         
         .family-section { margin-top: 10px; padding: 10px; background: rgba(0,0,0,0.03); border-radius: 8px; }
         .family-title { font-size: 0.9em; font-weight: bold; color: #7f8c8d; margin-bottom: 5px; display: block; }
-        .family-input { width: 100%; margin-bottom: 5px; padding: 5px; border: 1px solid #ccc; border-radius: 4px; font-size: 0.85em; }
+        .family-input-container { display: flex; align-items: center; gap: 5px; margin-bottom: 5px; }
+        .family-input { flex: 1; padding: 5px; border: 1px solid #ccc; border-radius: 4px; font-size: 0.85em; }
 
         .edit-input { width: 100%; margin-bottom: 10px; padding: 10px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-weight: bold; }
         
-        /* سجل المصروفات */
-        .expense-log { font-size: 0.8em; text-align: right; background: #fff; border: 1px solid #eee; padding: 5px; margin-top: 5px; border-radius: 5px; }
+        .expense-log { font-size: 0.8em; text-align: right; background: #fff; border: 1px solid #eee; padding: 8px; margin-top: 5px; border-radius: 5px; position: relative; color: #333; }
+        .btn-del-exp { background: #e74c3c; color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; float: left; cursor: pointer; }
 
         #loginOverlay { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; justify-content:center; align-items:center; }
         .login-box { background: white; padding: 40px; border-radius: 20px; width: 320px; text-align: center; }
@@ -77,13 +80,19 @@
             <input type="date" id="expDate" class="edit-input">
             <button onclick="addExpense()" class="btn-save" style="background:#e67e22;">إضافة مصروف</button>
         </div>
-        <div id="expenseDisplay" style="max-height:100px; overflow-y:auto; margin-top:10px;"></div>
+        <div id="expenseDisplay" style="max-height:150px; overflow-y:auto; margin-top:10px;"></div>
     </div>
     <div class="stat-item item-final">صافي المتوفر بالصندوق<span id="finalBalance" class="val">0</span></div>
     
-    <div class="stat-item item-total-people">
-        إجمالي عدد أفراد العشيرة (النفوس)
-        <span id="totalPeopleCount" class="val">0</span>
+    <div class="item-total-people">
+        <div style="text-align: right;">
+            إجمالي عدد النفوس
+            <span id="totalPeopleCount" style="font-size: 1.5em; font-weight: 900; display: block;">0</span>
+        </div>
+        <div style="text-align: left;">
+            الشهر الحالي
+            <span id="currentDateDisplay" style="font-size: 1.5em; font-weight: 900; display: block; color: #f1c40f;">-</span>
+        </div>
     </div>
 
     <div id="prevBalanceEdit" style="display:none; width:100%; text-align:center; margin-top:10px;">
@@ -133,9 +142,10 @@
         const expDiv = document.getElementById('expenseDisplay');
         expDiv.innerHTML = '';
         
-        expArray.forEach(e => { 
+        expArray.forEach((e, idx) => { 
             totalExp += Number(e.amount || 0); 
-            expDiv.innerHTML += `<div class="expense-log"><b>${e.amount.toLocaleString()}</b> - ${e.note} <br><small>${e.date}</small></div>`;
+            let delBtn = isAdmin ? `<span class="btn-del-exp" onclick="deleteExpense(${idx})">حذف ❌</span>` : '';
+            expDiv.innerHTML += `<div class="expense-log">${delBtn}<b>${Number(e.amount).toLocaleString()}</b> - ${e.note} <br><small>${e.date}</small></div>`;
         });
 
         const final = (Number(financials.prevBalance || 0) + monthlyPaid) - totalExp;
@@ -145,12 +155,15 @@
         document.getElementById('expenseTotal').innerText = totalExp.toLocaleString() + " د.ع";
         document.getElementById('finalBalance').innerText = final.toLocaleString() + " د.ع";
         document.getElementById('totalPeopleCount').innerText = totalPeople + " فرد";
+        
+        // تحديث التاريخ الحالي
+        const now = new Date();
+        const monthsNames = ["يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو", "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"];
+        document.getElementById('currentDateDisplay').innerText = monthsNames[now.getMonth()] + " " + now.getFullYear();
 
         render();
     }
 
-    function openLogin() { document.getElementById('loginOverlay').style.display = 'flex'; }
-    function closeLogin() { document.getElementById('loginOverlay').style.display = 'none'; }
     function checkLogin() {
         if(document.getElementById('passInput').value === "1234") {
             isAdmin = true;
@@ -160,23 +173,29 @@
             document.getElementById('logoutBtn').style.display = 'inline-block';
             document.getElementById('prevBalanceEdit').style.display = 'block';
             document.getElementById('adminExpensePanel').style.display = 'block';
-            render();
+            updateUI();
         } else { alert("خطأ!"); }
     }
+
+    function openLogin() { document.getElementById('loginOverlay').style.display = 'flex'; }
+    function closeLogin() { document.getElementById('loginOverlay').style.display = 'none'; }
 
     function addExpense() {
         const amt = document.getElementById('expAmt').value;
         const note = document.getElementById('expNote').value;
         const date = document.getElementById('expDate').value;
-        if(!amt || !date) { alert("يرجى ملء المبلغ والتاريخ"); return; }
-        
-        const newExp = { amount: Number(amt), note: note, date: date };
+        if(!amt || !date) { alert("المبلغ والتاريخ مطلوبان"); return; }
         const currentExp = Array.isArray(financials.expenses) ? financials.expenses : [];
-        currentExp.push(newExp);
+        currentExp.push({ amount: Number(amt), note: note, date: date });
         db.ref('financials_v2/expenses').set(currentExp);
-        
-        document.getElementById('expAmt').value = '';
-        document.getElementById('expNote').value = '';
+        document.getElementById('expAmt').value = ''; document.getElementById('expNote').value = '';
+    }
+
+    function deleteExpense(idx) {
+        if(confirm("هل تريد حذف هذا المصروف؟")) {
+            financials.expenses.splice(idx, 1);
+            db.ref('financials_v2/expenses').set(financials.expenses);
+        }
     }
 
     function render() {
@@ -188,48 +207,46 @@
             if(m.name.toLowerCase().includes(search)) {
                 const card = document.createElement('div');
                 card.className = `member-card ${m.paid ? 'paid-member' : ''} ${isAdmin ? 'admin-mode-card' : ''}`;
-                
                 const totalInFamily = 1 + (m.family ? m.family.length : 0);
+                
+                // حساب المبلغ تلقائياً
+                const calculatedAmount = totalInFamily * 2000;
+                if(m.amount !== calculatedAmount) { updateM(i, 'amount', calculatedAmount); }
 
                 if(!isAdmin) {
                     let familyNames = m.family ? m.family.filter(n => n).join(" - ") : "لا يوجد أفراد مضافين";
                     card.innerHTML = `
                         <h3 style="margin-bottom:5px;">${m.name}</h3>
                         <p style="color:#2c3e50; font-weight:bold; margin-top:0;">👪 مجموع أفراد الأسرة: ${totalInFamily}</p>
-                        <div class="family-section">
-                            <span class="family-title">أسماء الأفراد:</span>
-                            <small>${familyNames}</small>
-                        </div>
+                        <div class="family-section"><span class="family-title">الأسماء:</span><small>${familyNames}</small></div>
                         <hr>
-                        <p><b>المبلغ الكلي:</b> ${Number(m.amount).toLocaleString()} د.ع</p>
-                        <p><b>دفع عن شهر/أشهر:</b> <span style="color:#8e44ad">${m.payMonth || 'لم يحدد'}</span></p>
+                        <p><b>المبلغ الكلي (2000 للفرد):</b> ${Number(calculatedAmount).toLocaleString()} د.ع</p>
+                        <p><b>دفع عن شهر:</b> <span style="color:#8e44ad">${m.payMonth || '---'}</span></p>
                         <p><b>الحالة:</b> ${m.paid ? '<b style="color:green">✅ دافع</b>' : '<b style="color:red">❌ غير دافع</b>'}</p>
                     `;
                 } else {
                     let familyInputs = '';
                     if(m.family) {
                         m.family.forEach((fName, fIdx) => {
-                            familyInputs += `<input class="family-input" value="${fName}" placeholder="اسم الفرد" onchange="updateFamily(${i}, ${fIdx}, this.value)">`;
+                            familyInputs += `<div class="family-input-container">
+                                <input class="family-input" value="${fName}" onchange="updateFamily(${i}, ${fIdx}, this.value)">
+                                <span style="cursor:pointer" onclick="deleteFamilyMember(${i}, ${fIdx})">❌</span>
+                            </div>`;
                         });
                     }
-
                     card.innerHTML = `
                         <label>رب الأسرة:</label>
                         <input class="edit-input" value="${m.name}" onchange="updateM(${i},'name',this.value)">
-                        
                         <p style="color:#2980b9; font-weight:bold;">العدد الكلي: ${totalInFamily}</p>
                         <div class="family-section">
-                            <span class="family-title">إضافة أفراد العائلة:</span>
+                            <span class="family-title">أفراد العائلة:</span>
                             ${familyInputs}
                             <button class="btn-family" onclick="addFamilyMember(${i})">+ إضافة فرد</button>
                         </div>
-
-                        <label>المبلغ الكلي:</label>
-                        <input type="number" class="edit-input" value="${m.amount}" onchange="updateM(${i},'amount',this.value)">
-                        
-                        <label>دفع عن شهر (يمكن كتابة أكثر من شهر):</label>
-                        <input type="text" class="edit-input" value="${m.payMonth || ''}" placeholder="مثال: شهر 5 و 6" onchange="updateM(${i},'payMonth',this.value)">
-
+                        <label>المبلغ (محسوب تلقائياً):</label>
+                        <input type="number" class="edit-input" value="${calculatedAmount}" disabled style="background:#eee">
+                        <label>دفع عن شهر:</label>
+                        <input type="text" class="edit-input" value="${m.payMonth || ''}" placeholder="أدخل الشهر" onchange="updateM(${i},'payMonth',this.value)">
                         <label>الحالة:</label>
                         <select class="edit-input" onchange="updateM(${i},'paid',this.value==='true')">
                             <option value="false" ${!m.paid?'selected':''}>غير دافع</option>
@@ -241,14 +258,10 @@
                 container.appendChild(card);
             }
         });
-
         if(isAdmin) {
             const b = document.createElement('button');
             b.className = 'btn-add'; b.innerText = '+ إضافة رب أسرة جديد';
-            b.onclick = () => { 
-                membersData.push({name:'اسم جديد', amount:0, paid:false, family:[], payMonth:''}); 
-                db.ref('members').set(membersData); 
-            };
+            b.onclick = () => { membersData.push({name:'اسم جديد', amount:2000, paid:false, family:[], payMonth:''}); db.ref('members').set(membersData); };
             container.appendChild(b);
         }
     }
@@ -263,9 +276,12 @@
         membersData[memberIdx].family[familyIdx] = value;
         db.ref('members').set(membersData);
     }
+    function deleteFamilyMember(mIdx, fIdx) {
+        membersData[mIdx].family.splice(fIdx, 1);
+        db.ref('members').set(membersData);
+    }
     function savePrevBalance() {
-        const val = document.getElementById('prevBalanceIn').value;
-        db.ref('financials_v2/prevBalance').set(Number(val));
+        db.ref('financials_v2/prevBalance').set(Number(document.getElementById('prevBalanceIn').value));
         alert("تم الحفظ");
     }
     function deleteM(i) { if(confirm("حذف؟")) { membersData.splice(i,1); db.ref('members').set(membersData); } }
