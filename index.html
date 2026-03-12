@@ -8,62 +8,69 @@
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; margin: 0; padding: 0; }
         
-        /* تنسيق الترويسة مع إضافة البانر */
+        /* تنسيق الترويسة المحدث لإضافة البانر */
         .header-section { 
             background: #ffffff; 
-            padding: 15px 30px; 
+            padding: 20px 40px; 
             display: flex; 
             justify-content: space-between; 
             align-items: center; 
             border-bottom: 2px solid #2c3e50;
-            flex-wrap: nowrap;
-        }
-        .header-text { 
-            flex: 1;
-            text-align: right; 
-            color: #2c3e50; 
-            line-height: 1.3;
-        }
-        .header-text h1 { margin: 0; font-size: 1.6em; font-weight: 900; }
-        .header-text h2 { margin: 0; font-size: 1.4em; color: #34495e; }
-        .header-text h3 { margin: 0; font-size: 1.2em; color: #7f8c8d; }
-
-        /* تنسيق البانر في المنتصف */
-        .clan-banner-container {
-            flex: 2;
-            text-align: center;
-            padding: 0 15px;
-        }
-        .clan-banner {
-            max-width: 100%;
-            height: 100px;
-            object-fit: contain;
-            border-radius: 10px;
+            gap: 20px;
         }
         
-        .sheikh-photo-container { flex: 1; text-align: left; display: flex; flex-direction: column; align-items: center; }
+        /* تنسيق البانر الجديد */
+        .clan-banner {
+            flex: 1;
+            max-height: 120px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .clan-banner img {
+            max-width: 100%;
+            max-height: 110px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            object-fit: contain;
+        }
+
+        .header-text { 
+            text-align: right; 
+            color: #2c3e50; 
+            line-height: 1.4;
+            min-width: fit-content;
+        }
+        .header-text h1 { margin: 0; font-size: 1.8em; font-weight: 900; }
+        .header-text h2 { margin: 0; font-size: 1.5em; color: #34495e; }
+        .header-text h3 { margin: 0; font-size: 1.3em; color: #7f8c8d; }
+        
+        .sheikh-photo-container { text-align: center; min-width: fit-content; }
         .sheikh-img { 
-            width: 110px; 
-            height: 110px; 
+            width: 120px; 
+            height: 120px; 
             border-radius: 15px; 
             object-fit: cover; 
             border: 3px solid #2c3e50;
             background: #eee;
+            display: block;
         }
         .upload-btn { 
             display: none; 
             margin-top: 5px; 
-            font-size: 11px; 
+            font-size: 12px; 
             background: #34495e; 
             color: white; 
-            padding: 4px 8px; 
+            padding: 5px; 
             border-radius: 5px; 
             cursor: pointer;
         }
 
         .admin-bar { background: #2c3e50; color: white; padding: 15px; text-align: center; position: sticky; top: 0; z-index: 1000; }
+        
         .stats-bar { background: #ffffff; padding: 20px; display: flex; justify-content: space-around; gap: 15px; border-bottom: 3px solid #3498db; flex-wrap: wrap; }
         .stat-item { text-align: center; flex: 1; min-width: 180px; padding: 15px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); font-weight: bold; color: #2c3e50; border: 1px solid #ddd; }
+        
         .val { font-size: 1.5em; font-weight: 900; display: block; margin-top: 8px; }
         
         .item-prev { background-color: #ecf0f1; border-bottom: 5px solid #95a5a6; }
@@ -78,17 +85,28 @@
         .search-input { width: 80%; max-width: 500px; padding: 12px; border: 2px solid #3498db; border-radius: 30px; outline: none; text-align: center; font-size: 1em; }
         
         .member-list { display: flex; flex-wrap: wrap; gap: 20px; padding: 20px; justify-content: center; }
+        
         .member-card { background: white; border-radius: 15px; padding: 20px; width: 320px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); border-top: 5px solid #3498db; transition: 0.3s; }
         .paid-member { background-color: #e8f8f5 !important; border-top: 5px solid #27ae60 !important; }
         .unpaid-member { background-color: #fdedec !important; border-top: 5px solid #e74c3c !important; }
         
+        .admin-mode-card { border-top: 5px solid #e67e22; }
         .family-head-name { font-size: 1.6em; font-weight: 900; color: #2c3e50; margin-bottom: 8px; display: block; }
+
         .family-section { margin-top: 10px; padding: 10px; background: rgba(0,0,0,0.03); border-radius: 8px; }
+        .family-title { font-size: 0.9em; font-weight: bold; color: #7f8c8d; margin-bottom: 5px; display: block; }
+        .family-input-container { display: flex; align-items: center; gap: 5px; margin-bottom: 5px; }
+        .family-input { flex: 1; padding: 5px; border: 1px solid #ccc; border-radius: 4px; font-size: 0.85em; }
+
+        .edit-input { width: 100%; margin-bottom: 10px; padding: 10px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-weight: bold; }
+        
         .months-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; margin-top: 10px; }
         .month-btn { font-size: 0.75em; padding: 5px; background: #eee; border-radius: 4px; cursor: pointer; text-align: center; border: 1px solid #ddd; }
         .month-btn.selected { background: #8e44ad; color: white; border-color: #7d3c98; }
 
-        .edit-input { width: 100%; margin-bottom: 10px; padding: 10px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-weight: bold; }
+        .expense-log { font-size: 0.8em; text-align: right; background: #fff; border: 1px solid #eee; padding: 8px; margin-top: 5px; border-radius: 5px; position: relative; color: #333; }
+        .btn-del-exp { background: #e74c3c; color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; float: left; cursor: pointer; }
+
         #loginOverlay { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; justify-content:center; align-items:center; }
         .login-box { background: white; padding: 40px; border-radius: 20px; width: 320px; text-align: center; }
         
@@ -107,9 +125,9 @@
         <h2>عشيرة العبودة</h2>
         <h3>ال جهل</h3>
     </div>
-    
-    <div class="clan-banner-container">
-        <img src="https://i.ibb.co/Lzr7f3V/al-jahl.jpg" class="clan-banner" alt="شعار القبيلة">
+
+    <div class="clan-banner">
+        <img src="https://i.ibb.co/Xky9fC0m/image.png" alt="شعار العشيرة">
     </div>
 
     <div class="sheikh-photo-container">
@@ -271,18 +289,19 @@
                 const totalInFamily = 1 + (m.family ? m.family.length : 0);
                 const monthCount = (Array.isArray(m.payMonths) && m.payMonths.length > 0) ? m.payMonths.length : 0;
                 const calculatedAmount = totalInFamily * 2000 * monthCount;
+                if(m.amount !== calculatedAmount) { updateM(i, 'amount', calculatedAmount); }
 
                 let monthsDisplay = (monthCount > 0) ? m.payMonths.join(" - ") : "---";
 
                 if(!isAdmin) {
-                    let familyNames = m.family ? m.family.filter(n => n).join(" - ") : "لا يوجد";
+                    let familyNames = m.family ? m.family.filter(n => n).join(" - ") : "لا يوجد أفراد مضافين";
                     card.innerHTML = `
                         <span class="family-head-name">${m.name}</span>
-                        <p style="font-weight:bold; margin-top:0;">👪 أفراد الأسرة: ${totalInFamily}</p>
-                        <div class="family-section"><small>${familyNames}</small></div>
+                        <p style="color:#2c3e50; font-weight:bold; margin-top:0;">👪 مجموع أفراد الأسرة: ${totalInFamily}</p>
+                        <div class="family-section"><span class="family-title">الأسماء:</span><small>${familyNames}</small></div>
                         <hr>
-                        <p><b>المبلغ:</b> ${Number(calculatedAmount).toLocaleString()} د.ع</p>
-                        <p><b>الأشهر:</b> <br><span style="color:#8e44ad; font-weight:bold;">${monthsDisplay}</span></p>
+                        <p><b>المبلغ الكلي:</b> ${Number(calculatedAmount).toLocaleString()} د.ع</p>
+                        <p><b>دفع عن أشهر:</b> <br><span style="color:#8e44ad; font-weight:bold;">${monthsDisplay}</span></p>
                         <p><b>الحالة:</b> ${m.paid ? '<b style="color:green">✅ دافع</b>' : '<b style="color:red">❌ غير دافع</b>'}</p>
                     `;
                 } else {
@@ -302,20 +321,21 @@
                     });
                     monthsHtml += `</div>`;
                     card.innerHTML = `
-                        <label>الاسم:</label>
-                        <input class="edit-input" value="${m.name}" onchange="updateM(${i},'name',this.value)">
+                        <label>رب الأسرة (الاسم):</label>
+                        <input class="edit-input" style="font-size:1.2em" value="${m.name}" onchange="updateM(${i},'name',this.value)">
                         <div class="family-section">
-                            <button class="btn-family" onclick="addFamilyMember(${i})">+ إضافة فرد</button>
+                            <span class="family-title">أفراد العائلة:</span>
                             ${familyInputs}
+                            <button class="btn-family" onclick="addFamilyMember(${i})">+ إضافة فرد</button>
                         </div>
-                        <label>الأشهر:</label>
+                        <label>دفع عن أشهر:</label>
                         ${monthsHtml}
                         <label style="display:block; margin-top:10px;">المبلغ: ${Number(calculatedAmount).toLocaleString()} د.ع</label>
                         <select class="edit-input" onchange="updateM(${i},'paid',this.value==='true')">
                             <option value="false" ${!m.paid?'selected':''}>غير دافع</option>
                             <option value="true" ${m.paid?'selected':''}>دافع</option>
                         </select>
-                        <button class="btn-del" onclick="deleteM(${i})">حذف</button>
+                        <button class="btn-del" onclick="deleteM(${i})">حذف السجل</button>
                     `;
                 }
                 container.appendChild(card);
