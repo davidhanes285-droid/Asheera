@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8">
+<meta charset="UTF-8" />
 <title>إدارة صندوق العشيرة المتطور</title>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
@@ -124,7 +124,7 @@ button { cursor: pointer; border: none; border-radius: 6px; padding: 10px 15px; 
 <input type="file" id="bannerUpload" style="display:none;" accept="image/*" onchange="uploadBannerPhoto(this)">
 </div>
 <div class="sheikh-photo-container">
-<img id="sheikhImg" src="https://via.placeholder.com/120?text=صورة+الشيخ" class="sheikh-img">
+<img id="sheikhImg" src="https://via.placeholder.com/120?text=صورة+الشيخ" class="sheikh-img" />
 <label for="sheikhUpload" id="uploadLabel" class="upload-btn">📷 تغيير صورة الشيخ</label>
 <input type="file" id="sheikhUpload" style="display:none;" accept="image/*" onchange="uploadSheikhPhoto(this)">
 </div>
@@ -133,7 +133,7 @@ button { cursor: pointer; border: none; border-radius: 6px; padding: 10px 15px; 
 <div id="loginOverlay">
 <div class="login-box">
 <h2 style="margin-bottom:20px;">دخول لوحة التحكم</h2>
-<input type="password" id="passInput" class="edit-input" placeholder="كلمة المرور" style="text-align:center;">
+<input type="password" id="passInput" class="edit-input" placeholder="كلمة المرور" style="text-align:center;" />
 <button onclick="checkLogin()" class="btn-save" style="margin-bottom:10px;">دخول</button>
 <button onclick="closeLogin()" style="background:#95a5a6; color:white; width:100%;">إلغاء</button>
 </div>
@@ -148,15 +148,22 @@ button { cursor: pointer; border: none; border-radius: 6px; padding: 10px 15px; 
 <div class="stats-bar">
 <div class="stat-item item-prev">الرصيد السابق (2025)<span id="prevBalanceVal" class="val">0</span></div>
 
+<!-- خانة جديدة للمدير فقط: الرصيد السابق من السنة الماضية -->
+<div class="stat-item item-prev" id="prevBalanceLastYearContainer" style="display:none;">
+<label style="display:block; font-weight:bold; margin-bottom:5px;">تعديل الرصيد من السنة الماضية (للمدير فقط):</label>
+<input type="number" id="prevBalanceLastYear" class="edit-input" placeholder="أدخل مبلغ السنة الماضية" style="width:200px; margin:auto;">
+<button onclick="savePrevBalanceLastYear()" class="btn-save" style="margin-top:5px;">حفظ</button>
+</div>
+
 <div class="stat-item item-in">مجموع دفعات الشهر<span id="monthlyTotal" class="val">0</span></div>
 
 <div class="stat-item item-out">
 إجمالي المصروفات
 <span id="expenseTotal" class="val">0</span>
 <div id="adminExpensePanel" style="display:none; margin-top:10px; border-top:1px solid #d35400; padding-top:10px;">
-<input type="number" id="expAmt" class="edit-input" placeholder="المبلغ">
-<input type="text" id="expNote" class="edit-input" placeholder="سبب الصرف">
-<input type="date" id="expDate" class="edit-input">
+<input type="number" id="expAmt" class="edit-input" placeholder="المبلغ" />
+<input type="text" id="expNote" class="edit-input" placeholder="سبب الصرف" />
+<input type="date" id="expDate" class="edit-input" />
 <button onclick="addExpense()" class="btn-save" style="background:#e67e22;">إضافة مصروف</button>
 </div>
 <div id="expenseDisplay" style="max-height:150px; overflow-y:auto; margin-top:10px;"></div>
@@ -177,13 +184,13 @@ button { cursor: pointer; border: none; border-radius: 6px; padding: 10px 15px; 
 
 <div id="prevBalanceEdit" style="display:none; width:100%; text-align:center; margin-top:10px; background: #f8f9fa; padding: 10px; border-radius: 10px;">
 <label style="display:block; margin-bottom:5px; font-weight:bold; color:#2c3e50;">تعديل الرصيد السابق (للمدير فقط):</label>
-<input type="number" id="prevBalanceIn" class="edit-input" style="width:200px" placeholder="أدخل مبلغ العام الماضي">
+<input type="number" id="prevBalanceIn" class="edit-input" style="width:200px" placeholder="أدخل مبلغ العام الماضي" />
 <button onclick="savePrevBalance()" class="btn-save" style="width:100px;">حفظ التعديل</button>
 </div>
 </div>
 
 <div class="search-container">
-<input type="text" id="searchInput" class="search-input" placeholder="🔍 ابحث عن اسم رب الأسرة..." onkeyup="render()">
+<input type="text" id="searchInput" class="search-input" placeholder="🔍 ابحث عن اسم رب الأسرة..." onkeyup="render()" />
 </div>
 
 <div id="membersList" class="member-list"></div>
@@ -204,15 +211,16 @@ const db = firebase.database();
 
 let isAdmin = false;
 let membersData = [];
-// جعل الرصيد السابق صفر في البداية حتى يتم جلبه من قاعدة البيانات أو تعديله من المدير
 let financials = { prevBalance: 0, expenses: [] };
 const monthsNames = ["كانون الثاني", "شباط", "آذار", "نيسان", "أيار", "حزيران", "تموز", "آب", "أيلول", "تشرين الأول", "تشرين الثاني", "كانون الأول"];
 
+// استماع للتحديثات من قاعدة البيانات
 db.ref('sheikhPhoto').on('value', (s) => { if(s.val()) document.getElementById('sheikhImg').src = s.val(); });
 db.ref('bannerPhoto').on('value', (s) => { if(s.val()) document.getElementById('bannerSection').style.backgroundImage = `url('${s.val()}')`; });
 db.ref('members').on('value', (s) => { membersData = s.val() || []; updateUI(); });
 db.ref('financials_v2').on('value', (s) => { financials = s.val() || { prevBalance: 0, expenses: [] }; updateUI(); });
 
+// رفع صورة الشعار
 function uploadBannerPhoto(input) {
 if (input.files && input.files[0]) {
 const reader = new FileReader();
@@ -225,6 +233,7 @@ reader.readAsDataURL(input.files[0]);
 }
 }
 
+// رفع صورة الشيخ
 function uploadSheikhPhoto(input) {
 if (input.files && input.files[0]) {
 const reader = new FileReader();
@@ -237,6 +246,7 @@ reader.readAsDataURL(input.files[0]);
 }
 }
 
+// التحقق من كلمة المرور
 function checkLogin() {
 if(document.getElementById('passInput').value === "1234") {
 isAdmin = true;
@@ -248,6 +258,10 @@ document.getElementById('prevBalanceEdit').style.display = 'block';
 document.getElementById('adminExpensePanel').style.display = 'block';
 document.getElementById('uploadLabel').style.display = 'block';
 document.getElementById('bannerLabel').style.display = 'block';
+
+// إظهار خانة الرصيد من السنة الماضية للمدير
+document.getElementById('prevBalanceLastYearContainer').style.display = 'block';
+
 updateUI();
 } else { alert("خطأ في كلمة المرور!"); }
 }
@@ -255,6 +269,7 @@ updateUI();
 function openLogin() { document.getElementById('loginOverlay').style.display = 'flex'; }
 function closeLogin() { document.getElementById('loginOverlay').style.display = 'none'; }
 
+// تحديث واجهة المستخدم
 function updateUI() {
 let monthlyPaid = 0;
 let totalPeople = 0;
@@ -285,6 +300,15 @@ document.getElementById('currentDateDisplay').innerText = monthsNames[now.getMon
 render();
 }
 
+// حفظ الرصيد من السنة الماضية للمدير
+function savePrevBalanceLastYear() {
+const val = document.getElementById('prevBalanceLastYear').value;
+if(val === "") { alert("يرجى إدخال مبلغ"); return; }
+db.ref('financials_v2/prevBalanceLastYear').set(Number(val));
+alert("تم حفظ الرصيد من السنة الماضية للمدير");
+}
+
+// حفظ الرصيد السابق
 function savePrevBalance() {
 const newVal = document.getElementById('prevBalanceIn').value;
 if(newVal === "") {
@@ -293,9 +317,10 @@ return;
 }
 db.ref('financials_v2/prevBalance').set(Number(newVal));
 alert("تم تحديث رصيد العام الماضي بنجاح");
-document.getElementById('prevBalanceIn').value = ""; // تفريغ الخانة بعد الحفظ
+document.getElementById('prevBalanceIn').value = "";
 }
 
+// عرض قائمة الأعضاء
 function render() {
 const container = document.getElementById('membersList');
 const search = document.getElementById('searchInput').value.toLowerCase();
@@ -332,6 +357,7 @@ container.appendChild(b);
 }
 }
 
+// وظائف أخرى
 function toggleMonth(memberIdx, monthName) {
 if(!Array.isArray(membersData[memberIdx].payMonths)) membersData[memberIdx].payMonths = [];
 const index = membersData[memberIdx].payMonths.indexOf(monthName);
@@ -354,6 +380,16 @@ db.ref('financials_v2/expenses').set(currentExp);
 }
 function deleteExpense(idx) { if(confirm("حذف؟")) { financials.expenses.splice(idx, 1); db.ref('financials_v2/expenses').set(financials.expenses); } }
 function deleteM(i) { if(confirm("حذف؟")) { membersData.splice(i,1); db.ref('members').set(membersData); } }
+
+// عند تحميل الصفحة
+window.onload = () => {
+if (firebase.auth && firebase.auth().currentUser && firebase.auth().currentUser.email === "admin@example.com") {
+isAdmin = true;
+document.getElementById('modeText').innerText = "✅ وضع المدير";
+document.getElementById('prevBalanceLastYearContainer').style.display = 'block';
+}
+updateUI();
+};
 </script>
 </body>
 </html>
