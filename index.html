@@ -8,11 +8,10 @@
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; margin: 0; padding: 0; }
         
-        /* التعديل الجديد لمنطقة الشعار (Banner) */
         .header-section { 
             position: relative;
             background: #ffffff; 
-            padding: 40px 60px; /* زيادة الحشو ليتناسب مع الشعار */
+            padding: 40px 60px;
             display: flex; 
             justify-content: space-between; 
             align-items: center; 
@@ -23,12 +22,11 @@
             z-index: 1;
         }
 
-        /* طبقة شفافة لجعل النص واضحاً فوق أي شعار */
         .header-section::before {
             content: "";
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(255, 255, 255, 0.7); /* تغشية بيضاء خفيفة */
+            background: rgba(255, 255, 255, 0.7);
             z-index: -1;
         }
 
@@ -53,7 +51,6 @@
             display: block;
         }
         
-        /* تنسيق أزرار الرفع */
         .upload-btn { 
             display: none; 
             margin-top: 5px; 
@@ -121,7 +118,9 @@
 <div class="header-section" id="bannerSection">
     <div class="header-text">
         <h1>صندوق الفاتحة لعام 2026</h1>
-        <h2>قبيلة العبودة</h2> <h3>عشيرة ال جهل</h3> <label for="bannerUpload" id="bannerLabel" class="upload-btn">🖼️ تغيير شعار الصندوق</label>
+        <h2>قبيلة العبودة</h2> 
+        <h3>عشيرة ال جهل</h3> 
+        <label for="bannerUpload" id="bannerLabel" class="upload-btn">🖼️ تغيير شعار الصندوق</label>
         <input type="file" id="bannerUpload" style="display:none;" accept="image/*" onchange="uploadBannerPhoto(this)">
     </div>
     <div class="sheikh-photo-container">
@@ -147,8 +146,10 @@
 </div>
 
 <div class="stats-bar">
-    <div class="stat-item item-prev">الرصيد السابق<span id="prevBalanceVal" class="val">0</span></div>
+    <div class="stat-item item-prev">الرصيد السابق (2025)<span id="prevBalanceVal" class="val">0</span></div>
+    
     <div class="stat-item item-in">مجموع دفعات الشهر<span id="monthlyTotal" class="val">0</span></div>
+    
     <div class="stat-item item-out">
         إجمالي المصروفات
         <span id="expenseTotal" class="val">0</span>
@@ -160,6 +161,7 @@
         </div>
         <div id="expenseDisplay" style="max-height:150px; overflow-y:auto; margin-top:10px;"></div>
     </div>
+    
     <div class="stat-item item-final">صافي المتوفر بالصندوق<span id="finalBalance" class="val">0</span></div>
     
     <div class="item-total-people">
@@ -173,9 +175,10 @@
         </div>
     </div>
 
-    <div id="prevBalanceEdit" style="display:none; width:100%; text-align:center; margin-top:10px;">
-        <input type="number" id="prevBalanceIn" class="edit-input" style="width:200px" placeholder="تعديل الرصيد السابق">
-        <button onclick="savePrevBalance()" class="btn-save" style="width:100px;">حفظ</button>
+    <div id="prevBalanceEdit" style="display:none; width:100%; text-align:center; margin-top:10px; background: #f8f9fa; padding: 10px; border-radius: 10px;">
+        <label style="display:block; margin-bottom:5px; font-weight:bold; color:#2c3e50;">تعديل الرصيد السابق (للمدير فقط):</label>
+        <input type="number" id="prevBalanceIn" class="edit-input" style="width:200px" placeholder="أدخل مبلغ العام الماضي">
+        <button onclick="savePrevBalance()" class="btn-save" style="width:100px;">حفظ التعديل</button>
     </div>
 </div>
 
@@ -240,12 +243,12 @@
             document.getElementById('modeText').innerText = "✅ لوحة المدير";
             document.getElementById('loginBtn').style.display = 'none';
             document.getElementById('logoutBtn').style.display = 'inline-block';
-            document.getElementById('prevBalanceEdit').style.display = 'block';
+            document.getElementById('prevBalanceEdit').style.display = 'block'; // يظهر للمدير فقط
             document.getElementById('adminExpensePanel').style.display = 'block';
             document.getElementById('uploadLabel').style.display = 'block';
             document.getElementById('bannerLabel').style.display = 'block';
             updateUI();
-        } else { alert("خطأ!"); }
+        } else { alert("خطأ في كلمة المرور!"); }
     }
 
     function openLogin() { document.getElementById('loginOverlay').style.display = 'flex'; }
@@ -270,6 +273,8 @@
             let delBtn = isAdmin ? `<span class="btn-del-exp" onclick="deleteExpense(${idx})">حذف ❌</span>` : '';
             expDiv.innerHTML += `<div class="expense-log">${delBtn}<b>${Number(e.amount).toLocaleString()}</b> - ${e.note} <br><small>${e.date}</small></div>`;
         });
+        
+        // عرض الرصيد السابق للجميع
         document.getElementById('prevBalanceVal').innerText = Number(financials.prevBalance || 0).toLocaleString() + " د.ع";
         document.getElementById('monthlyTotal').innerText = monthlyPaid.toLocaleString() + " د.ع";
         document.getElementById('expenseTotal').innerText = totalExp.toLocaleString() + " د.ع";
@@ -278,6 +283,13 @@
         const now = new Date();
         document.getElementById('currentDateDisplay').innerText = monthsNames[now.getMonth()] + " " + now.getFullYear();
         render();
+    }
+
+    function savePrevBalance() {
+        const newVal = document.getElementById('prevBalanceIn').value;
+        if(newVal === "") return;
+        db.ref('financials_v2/prevBalance').set(Number(newVal));
+        alert("تم تحديث رصيد العام الماضي بنجاح");
     }
 
     function render() {
@@ -337,7 +349,6 @@
         db.ref('financials_v2/expenses').set(currentExp);
     }
     function deleteExpense(idx) { if(confirm("حذف؟")) { financials.expenses.splice(idx, 1); db.ref('financials_v2/expenses').set(financials.expenses); } }
-    function savePrevBalance() { db.ref('financials_v2/prevBalance').set(Number(document.getElementById('prevBalanceIn').value)); alert("تم الحفظ"); }
     function deleteM(i) { if(confirm("حذف؟")) { membersData.splice(i,1); db.ref('members').set(membersData); } }
 </script>
 </body>
