@@ -8,7 +8,7 @@
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; margin: 0; padding: 0; }
         
-        /* تنسيق الترويسة الجديدة */
+        /* تنسيق الترويسة الجديدة المدمجة مع الراية */
         .header-section { 
             background: #ffffff; 
             padding: 20px 40px; 
@@ -45,6 +45,37 @@
             padding: 5px; 
             border-radius: 5px; 
             cursor: pointer;
+        }
+
+        /* تنسيق قسم الراية الخلفية */
+        .flag-background-wrapper {
+            position: relative;
+            width: 100%;
+            height: 250px; /* ارتفاع مناسب للراية */
+            background-color: white;
+            border-bottom: 2px solid #2c3e50;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+        .flag-bg-img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: contain; /* للحفاظ على نسب الصورة */
+            z-index: 1;
+        }
+        .content-over-flag {
+            position: relative;
+            z-index: 2; /* فوق الراية */
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: calc(100% - 80px); /* مع مراعاة الهوامش */
+            padding: 0 40px;
         }
 
         .admin-bar { background: #2c3e50; color: white; padding: 15px; text-align: center; position: sticky; top: 0; z-index: 1000; }
@@ -100,16 +131,20 @@
 </head>
 <body>
 
-<div class="header-section">
-    <div class="header-text">
-        <h1>صندوق الفاتحة لعام 2026</h1>
-        <h2>عشيرة العبودة</h2>
-        <h3>ال جهل</h3>
-    </div>
-    <div class="sheikh-photo-container">
-        <img id="sheikhImg" src="https://via.placeholder.com/120?text=صورة+الشيخ" class="sheikh-img">
-        <label for="sheikhUpload" id="uploadLabel" class="upload-btn">تغيير صورة الشيخ 📷</label>
-        <input type="file" id="sheikhUpload" style="display:none;" accept="image/*" onchange="uploadSheikhPhoto(this)">
+<div class="flag-background-wrapper">
+    <img src="https://via.placeholder.com/1200x250/fff/red?text=قبيلة+العبودة+-+عشيرة+ال+جهل+(الراية)+[C+****]" class="flag-bg-img" alt="راية العشيرة">
+    
+    <div class="content-over-flag">
+        <div class="header-text">
+            <h1>صندوق الفاتحة لعام 2026</h1>
+            <h2>عشيرة العبودة</h2>
+            <h3>ال جهل</h3>
+        </div>
+        <div class="sheikh-photo-container">
+            <img id="sheikhImg" src="https://via.placeholder.com/120?text=صورة+الشيخ" class="sheikh-img">
+            <label for="sheikhUpload" id="uploadLabel" class="upload-btn">تغيير صورة الشيخ 📷</label>
+            <input type="file" id="sheikhUpload" style="display:none;" accept="image/*" onchange="uploadSheikhPhoto(this)">
+        </div>
     </div>
 </div>
 
@@ -186,8 +221,9 @@
     let financials = { prevBalance: 0, expenses: [] };
     const monthsNames = ["كانون الثاني", "شباط", "آذار", "نيسان", "أيار", "حزيران", "تموز", "آب", "أيلول", "تشرين الأول", "تشرين الثاني", "كانون الأول"];
 
-    // جلب الصورة عند البداية
     db.ref('sheikhPhoto').on('value', (s) => { if(s.val()) document.getElementById('sheikhImg').src = s.val(); });
+    // جلب رابط الراية من قاعدة البيانات (ستظهر الراية الحقيقية التي أرفقتها الآن)
+    db.ref('clanFlag').on('value', (s) => { if(s.val()) document.querySelector('.flag-bg-img').src = s.val(); });
     db.ref('members').on('value', (s) => { membersData = s.val() || []; updateUI(); });
     db.ref('financials_v2').on('value', (s) => { financials = s.val() || { prevBalance: 0, expenses: [] }; updateUI(); });
 
