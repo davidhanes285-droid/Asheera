@@ -7,6 +7,46 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; margin: 0; padding: 0; }
+        
+        /* تنسيق الترويسة الجديدة */
+        .header-section { 
+            background: #ffffff; 
+            padding: 20px 40px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            border-bottom: 2px solid #2c3e50;
+        }
+        .header-text { 
+            text-align: right; 
+            color: #2c3e50; 
+            line-height: 1.4;
+        }
+        .header-text h1 { margin: 0; font-size: 1.8em; font-weight: 900; }
+        .header-text h2 { margin: 0; font-size: 1.5em; color: #34495e; }
+        .header-text h3 { margin: 0; font-size: 1.3em; color: #7f8c8d; }
+        
+        .sheikh-photo-container { text-align: center; }
+        .sheikh-img { 
+            width: 120px; 
+            height: 120px; 
+            border-radius: 15px; 
+            object-fit: cover; 
+            border: 3px solid #2c3e50;
+            background: #eee;
+            display: block;
+        }
+        .upload-btn { 
+            display: none; 
+            margin-top: 5px; 
+            font-size: 12px; 
+            background: #34495e; 
+            color: white; 
+            padding: 5px; 
+            border-radius: 5px; 
+            cursor: pointer;
+        }
+
         .admin-bar { background: #2c3e50; color: white; padding: 15px; text-align: center; position: sticky; top: 0; z-index: 1000; }
         
         .stats-bar { background: #ffffff; padding: 20px; display: flex; justify-content: space-around; gap: 15px; border-bottom: 3px solid #3498db; flex-wrap: wrap; }
@@ -42,7 +82,7 @@
         .edit-input { width: 100%; margin-bottom: 10px; padding: 10px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-weight: bold; }
         
         .months-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; margin-top: 10px; }
-        .month-btn { font-size: 0.75em; padding: 5px; background: #eee; border-radius: 4px; cursor: pointer; text-align: center; border: 1px solid #ddd; transition: 0.2s; }
+        .month-btn { font-size: 0.75em; padding: 5px; background: #eee; border-radius: 4px; cursor: pointer; text-align: center; border: 1px solid #ddd; }
         .month-btn.selected { background: #8e44ad; color: white; border-color: #7d3c98; }
 
         .expense-log { font-size: 0.8em; text-align: right; background: #fff; border: 1px solid #eee; padding: 8px; margin-top: 5px; border-radius: 5px; position: relative; color: #333; }
@@ -59,6 +99,19 @@
     </style>
 </head>
 <body>
+
+<div class="header-section">
+    <div class="header-text">
+        <h1>صندوق الفاتحة لعام 2026</h1>
+        <h2>عشيرة العبودة</h2>
+        <h3>ال جهل</h3>
+    </div>
+    <div class="sheikh-photo-container">
+        <img id="sheikhImg" src="https://via.placeholder.com/120?text=صورة+الشيخ" class="sheikh-img">
+        <label for="sheikhUpload" id="uploadLabel" class="upload-btn">تغيير صورة الشيخ 📷</label>
+        <input type="file" id="sheikhUpload" style="display:none;" accept="image/*" onchange="uploadSheikhPhoto(this)">
+    </div>
+</div>
 
 <div id="loginOverlay">
     <div class="login-box">
@@ -133,6 +186,8 @@
     let financials = { prevBalance: 0, expenses: [] };
     const monthsNames = ["كانون الثاني", "شباط", "آذار", "نيسان", "أيار", "حزيران", "تموز", "آب", "أيلول", "تشرين الأول", "تشرين الثاني", "كانون الأول"];
 
+    // جلب الصورة عند البداية
+    db.ref('sheikhPhoto').on('value', (s) => { if(s.val()) document.getElementById('sheikhImg').src = s.val(); });
     db.ref('members').on('value', (s) => { membersData = s.val() || []; updateUI(); });
     db.ref('financials_v2').on('value', (s) => { financials = s.val() || { prevBalance: 0, expenses: [] }; updateUI(); });
 
@@ -143,11 +198,8 @@
         membersData.forEach(m => { 
             const peopleCount = 1 + (m.family ? m.family.length : 0);
             totalPeople += peopleCount;
-            
-            // حساب المبلغ: عدد الأفراد * 2000 * عدد الأشهر المختارة
             const monthCount = (Array.isArray(m.payMonths) && m.payMonths.length > 0) ? m.payMonths.length : 0;
             const calculatedTotal = peopleCount * 2000 * monthCount;
-            
             if(m.paid) monthlyPaid += calculatedTotal; 
         });
         
@@ -155,25 +207,33 @@
         const expArray = Array.isArray(financials.expenses) ? financials.expenses : [];
         const expDiv = document.getElementById('expenseDisplay');
         expDiv.innerHTML = '';
-        
         expArray.forEach((e, idx) => { 
             totalExp += Number(e.amount || 0); 
             let delBtn = isAdmin ? `<span class="btn-del-exp" onclick="deleteExpense(${idx})">حذف ❌</span>` : '';
             expDiv.innerHTML += `<div class="expense-log">${delBtn}<b>${Number(e.amount).toLocaleString()}</b> - ${e.note} <br><small>${e.date}</small></div>`;
         });
 
-        const final = (Number(financials.prevBalance || 0) + monthlyPaid) - totalExp;
-
         document.getElementById('prevBalanceVal').innerText = Number(financials.prevBalance || 0).toLocaleString() + " د.ع";
         document.getElementById('monthlyTotal').innerText = monthlyPaid.toLocaleString() + " د.ع";
         document.getElementById('expenseTotal').innerText = totalExp.toLocaleString() + " د.ع";
-        document.getElementById('finalBalance').innerText = final.toLocaleString() + " د.ع";
+        document.getElementById('finalBalance').innerText = ((Number(financials.prevBalance || 0) + monthlyPaid) - totalExp).toLocaleString() + " د.ع";
         document.getElementById('totalPeopleCount').innerText = totalPeople + " فرد";
         
         const now = new Date();
         document.getElementById('currentDateDisplay').innerText = monthsNames[now.getMonth()] + " " + now.getFullYear();
-
         render();
+    }
+
+    function uploadSheikhPhoto(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const base64Image = e.target.result;
+                db.ref('sheikhPhoto').set(base64Image);
+                document.getElementById('sheikhImg').src = base64Image;
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
     }
 
     function checkLogin() {
@@ -185,6 +245,7 @@
             document.getElementById('logoutBtn').style.display = 'inline-block';
             document.getElementById('prevBalanceEdit').style.display = 'block';
             document.getElementById('adminExpensePanel').style.display = 'block';
+            document.getElementById('uploadLabel').style.display = 'block';
             updateUI();
         } else { alert("خطأ!"); }
     }
@@ -202,15 +263,12 @@
                 const cardColorClass = m.paid ? 'paid-member' : 'unpaid-member';
                 const card = document.createElement('div');
                 card.className = `member-card ${cardColorClass} ${isAdmin ? 'admin-mode-card' : ''}`;
-                
                 const totalInFamily = 1 + (m.family ? m.family.length : 0);
                 const monthCount = (Array.isArray(m.payMonths) && m.payMonths.length > 0) ? m.payMonths.length : 0;
                 const calculatedAmount = totalInFamily * 2000 * monthCount;
-                
-                // تحديث المبلغ في قاعدة البيانات إذا اختلف
                 if(m.amount !== calculatedAmount) { updateM(i, 'amount', calculatedAmount); }
 
-                let monthsDisplay = (monthCount > 0) ? m.payMonths.join(" - ") : "لم يتم اختيار أشهر";
+                let monthsDisplay = (monthCount > 0) ? m.payMonths.join(" - ") : "---";
 
                 if(!isAdmin) {
                     let familyNames = m.family ? m.family.filter(n => n).join(" - ") : "لا يوجد أفراد مضافين";
@@ -219,8 +277,7 @@
                         <p style="color:#2c3e50; font-weight:bold; margin-top:0;">👪 مجموع أفراد الأسرة: ${totalInFamily}</p>
                         <div class="family-section"><span class="family-title">الأسماء:</span><small>${familyNames}</small></div>
                         <hr>
-                        <p><b>عدد الأشهر المختارة:</b> ${monthCount}</p>
-                        <p><b>المبلغ الكلي المستحق:</b> <span style="color:#27ae60; font-size:1.1em">${Number(calculatedAmount).toLocaleString()} د.ع</span></p>
+                        <p><b>المبلغ الكلي:</b> ${Number(calculatedAmount).toLocaleString()} د.ع</p>
                         <p><b>دفع عن أشهر:</b> <br><span style="color:#8e44ad; font-weight:bold;">${monthsDisplay}</span></p>
                         <p><b>الحالة:</b> ${m.paid ? '<b style="color:green">✅ دافع</b>' : '<b style="color:red">❌ غير دافع</b>'}</p>
                     `;
@@ -234,18 +291,15 @@
                             </div>`;
                         });
                     }
-
                     let monthsHtml = `<div class="months-grid">`;
                     monthsNames.forEach(month => {
                         const isSelected = Array.isArray(m.payMonths) && m.payMonths.includes(month);
                         monthsHtml += `<div class="month-btn ${isSelected ? 'selected' : ''}" onclick="toggleMonth(${i}, '${month}')">${month}</div>`;
                     });
                     monthsHtml += `</div>`;
-
                     card.innerHTML = `
                         <label>رب الأسرة (الاسم):</label>
                         <input class="edit-input" style="font-size:1.2em" value="${m.name}" onchange="updateM(${i},'name',this.value)">
-                        <p style="color:#2980b9; font-weight:bold;">العدد الكلي: ${totalInFamily} | أشهر: ${monthCount}</p>
                         <div class="family-section">
                             <span class="family-title">أفراد العائلة:</span>
                             ${familyInputs}
@@ -253,10 +307,7 @@
                         </div>
                         <label>دفع عن أشهر:</label>
                         ${monthsHtml}
-                        <div style="margin-top:10px"></div>
-                        <label>المبلغ الكلي (محسوب):</label>
-                        <input type="text" class="edit-input" value="${Number(calculatedAmount).toLocaleString()} د.ع" disabled style="background:#f9f9f9; color:#27ae60">
-                        <label>الحالة:</label>
+                        <label style="display:block; margin-top:10px;">المبلغ: ${Number(calculatedAmount).toLocaleString()} د.ع</label>
                         <select class="edit-input" onchange="updateM(${i},'paid',this.value==='true')">
                             <option value="false" ${!m.paid?'selected':''}>غير دافع</option>
                             <option value="true" ${m.paid?'selected':''}>دافع</option>
@@ -276,13 +327,10 @@
     }
 
     function toggleMonth(memberIdx, monthName) {
-        if(!Array.isArray(membersData[memberIdx].payMonths)) {
-            membersData[memberIdx].payMonths = [];
-        }
+        if(!Array.isArray(membersData[memberIdx].payMonths)) membersData[memberIdx].payMonths = [];
         const index = membersData[memberIdx].payMonths.indexOf(monthName);
-        if(index > -1) {
-            membersData[memberIdx].payMonths.splice(index, 1);
-        } else {
+        if(index > -1) membersData[memberIdx].payMonths.splice(index, 1);
+        else {
             membersData[memberIdx].payMonths.push(monthName);
             membersData[memberIdx].payMonths.sort((a, b) => monthsNames.indexOf(a) - monthsNames.indexOf(b));
         }
@@ -290,41 +338,21 @@
     }
 
     function updateM(i, f, v) { membersData[i][f] = v; db.ref('members').set(membersData); }
-    function addFamilyMember(memberIdx) {
-        if(!membersData[memberIdx].family) membersData[memberIdx].family = [];
-        membersData[memberIdx].family.push(""); 
-        db.ref('members').set(membersData);
-    }
-    function updateFamily(memberIdx, familyIdx, value) {
-        membersData[memberIdx].family[familyIdx] = value;
-        db.ref('members').set(membersData);
-    }
-    function deleteFamilyMember(mIdx, fIdx) {
-        membersData[mIdx].family.splice(fIdx, 1);
-        db.ref('members').set(membersData);
-    }
+    function addFamilyMember(mIdx) { if(!membersData[mIdx].family) membersData[mIdx].family = []; membersData[mIdx].family.push(""); db.ref('members').set(membersData); }
+    function updateFamily(mIdx, fIdx, val) { membersData[mIdx].family[fIdx] = val; db.ref('members').set(membersData); }
+    function deleteFamilyMember(mIdx, fIdx) { membersData[mIdx].family.splice(fIdx, 1); db.ref('members').set(membersData); }
     function addExpense() {
         const amt = document.getElementById('expAmt').value;
         const note = document.getElementById('expNote').value;
         const date = document.getElementById('expDate').value;
-        if(!amt || !date) { alert("المبلغ والتاريخ مطلوبان"); return; }
+        if(!amt || !date) return;
         const currentExp = Array.isArray(financials.expenses) ? financials.expenses : [];
         currentExp.push({ amount: Number(amt), note: note, date: date });
         db.ref('financials_v2/expenses').set(currentExp);
-        document.getElementById('expAmt').value = ''; document.getElementById('expNote').value = '';
     }
-    function deleteExpense(idx) {
-        if(confirm("هل تريد حذف هذا المصروف؟")) {
-            financials.expenses.splice(idx, 1);
-            db.ref('financials_v2/expenses').set(financials.expenses);
-        }
-    }
-    function savePrevBalance() {
-        db.ref('financials_v2/prevBalance').set(Number(document.getElementById('prevBalanceIn').value));
-        alert("تم الحفظ");
-    }
+    function deleteExpense(idx) { if(confirm("حذف؟")) { financials.expenses.splice(idx, 1); db.ref('financials_v2/expenses').set(financials.expenses); } }
+    function savePrevBalance() { db.ref('financials_v2/prevBalance').set(Number(document.getElementById('prevBalanceIn').value)); alert("تم الحفظ"); }
     function deleteM(i) { if(confirm("حذف؟")) { membersData.splice(i,1); db.ref('members').set(membersData); } }
 </script>
 </body>
 </html>
-
