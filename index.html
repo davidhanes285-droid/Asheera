@@ -261,4 +261,69 @@
                             <option value="false" ${!m.paid?'selected':''}>غير دافع</option>
                             <option value="true" ${m.paid?'selected':''}>دافع</option>
                         </select>
-                        <button
+                        <button class="btn-del" onclick="deleteM(${i})">حذف السجل</button>
+                    `;
+                }
+                container.appendChild(card);
+            }
+        });
+        if(isAdmin) {
+            const b = document.createElement('button');
+            b.className = 'btn-add'; b.innerText = '+ إضافة رب أسرة جديد';
+            b.onclick = () => { membersData.push({name:'اسم جديد', amount:0, paid:false, family:[], payMonths:[]}); db.ref('members').set(membersData); };
+            container.appendChild(b);
+        }
+    }
+
+    function toggleMonth(memberIdx, monthName) {
+        if(!Array.isArray(membersData[memberIdx].payMonths)) {
+            membersData[memberIdx].payMonths = [];
+        }
+        const index = membersData[memberIdx].payMonths.indexOf(monthName);
+        if(index > -1) {
+            membersData[memberIdx].payMonths.splice(index, 1);
+        } else {
+            membersData[memberIdx].payMonths.push(monthName);
+            membersData[memberIdx].payMonths.sort((a, b) => monthsNames.indexOf(a) - monthsNames.indexOf(b));
+        }
+        db.ref('members').set(membersData);
+    }
+
+    function updateM(i, f, v) { membersData[i][f] = v; db.ref('members').set(membersData); }
+    function addFamilyMember(memberIdx) {
+        if(!membersData[memberIdx].family) membersData[memberIdx].family = [];
+        membersData[memberIdx].family.push(""); 
+        db.ref('members').set(membersData);
+    }
+    function updateFamily(memberIdx, familyIdx, value) {
+        membersData[memberIdx].family[familyIdx] = value;
+        db.ref('members').set(membersData);
+    }
+    function deleteFamilyMember(mIdx, fIdx) {
+        membersData[mIdx].family.splice(fIdx, 1);
+        db.ref('members').set(membersData);
+    }
+    function addExpense() {
+        const amt = document.getElementById('expAmt').value;
+        const note = document.getElementById('expNote').value;
+        const date = document.getElementById('expDate').value;
+        if(!amt || !date) { alert("المبلغ والتاريخ مطلوبان"); return; }
+        const currentExp = Array.isArray(financials.expenses) ? financials.expenses : [];
+        currentExp.push({ amount: Number(amt), note: note, date: date });
+        db.ref('financials_v2/expenses').set(currentExp);
+        document.getElementById('expAmt').value = ''; document.getElementById('expNote').value = '';
+    }
+    function deleteExpense(idx) {
+        if(confirm("هل تريد حذف هذا المصروف؟")) {
+            financials.expenses.splice(idx, 1);
+            db.ref('financials_v2/expenses').set(financials.expenses);
+        }
+    }
+    function savePrevBalance() {
+        db.ref('financials_v2/prevBalance').set(Number(document.getElementById('prevBalanceIn').value));
+        alert("تم الحفظ");
+    }
+    function deleteM(i) { if(confirm("حذف؟")) { membersData.splice(i,1); db.ref('members').set(membersData); } }
+</script>
+</body>
+</html>
