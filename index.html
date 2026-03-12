@@ -8,44 +8,41 @@
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; margin: 0; padding: 0; }
         
-        /* تنسيق الترويسة المحدث لإضافة البانر */
+        /* التعديل الجديد لمنطقة الشعار (Banner) */
         .header-section { 
+            position: relative;
             background: #ffffff; 
-            padding: 20px 40px; 
+            padding: 40px 60px; /* زيادة الحشو ليتناسب مع الشعار */
             display: flex; 
             justify-content: space-between; 
             align-items: center; 
             border-bottom: 2px solid #2c3e50;
-            gap: 20px;
+            background-size: cover;
+            background-position: center;
+            overflow: hidden;
+            z-index: 1;
         }
-        
-        /* تنسيق البانر الجديد */
-        .clan-banner {
-            flex: 1;
-            max-height: 120px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        .clan-banner img {
-            max-width: 100%;
-            max-height: 110px;
-            border-radius: 10px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            object-fit: contain;
+
+        /* طبقة شفافة لجعل النص واضحاً فوق أي شعار */
+        .header-section::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(255, 255, 255, 0.7); /* تغشية بيضاء خفيفة */
+            z-index: -1;
         }
 
         .header-text { 
             text-align: right; 
             color: #2c3e50; 
             line-height: 1.4;
-            min-width: fit-content;
+            z-index: 2;
         }
         .header-text h1 { margin: 0; font-size: 1.8em; font-weight: 900; }
         .header-text h2 { margin: 0; font-size: 1.5em; color: #34495e; }
         .header-text h3 { margin: 0; font-size: 1.3em; color: #7f8c8d; }
         
-        .sheikh-photo-container { text-align: center; min-width: fit-content; }
+        .sheikh-photo-container { text-align: center; z-index: 2; }
         .sheikh-img { 
             width: 120px; 
             height: 120px; 
@@ -55,10 +52,12 @@
             background: #eee;
             display: block;
         }
+        
+        /* تنسيق أزرار الرفع */
         .upload-btn { 
             display: none; 
             margin-top: 5px; 
-            font-size: 12px; 
+            font-size: 11px; 
             background: #34495e; 
             color: white; 
             padding: 5px; 
@@ -119,20 +118,17 @@
 </head>
 <body>
 
-<div class="header-section">
+<div class="header-section" id="bannerSection">
     <div class="header-text">
         <h1>صندوق الفاتحة لعام 2026</h1>
         <h2>عشيرة العبودة</h2>
         <h3>ال جهل</h3>
+        <label for="bannerUpload" id="bannerLabel" class="upload-btn">🖼️ تغيير شعار الصندوق</label>
+        <input type="file" id="bannerUpload" style="display:none;" accept="image/*" onchange="uploadBannerPhoto(this)">
     </div>
-
-    <div class="clan-banner">
-        <img src="https://i.ibb.co/Xky9fC0m/image.png" alt="شعار العشيرة">
-    </div>
-
     <div class="sheikh-photo-container">
         <img id="sheikhImg" src="https://via.placeholder.com/120?text=صورة+الشيخ" class="sheikh-img">
-        <label for="sheikhUpload" id="uploadLabel" class="upload-btn">تغيير صورة الشيخ 📷</label>
+        <label for="sheikhUpload" id="uploadLabel" class="upload-btn">📷 تغيير صورة الشيخ</label>
         <input type="file" id="sheikhUpload" style="display:none;" accept="image/*" onchange="uploadSheikhPhoto(this)">
     </div>
 </div>
@@ -210,41 +206,22 @@
     let financials = { prevBalance: 0, expenses: [] };
     const monthsNames = ["كانون الثاني", "شباط", "آذار", "نيسان", "أيار", "حزيران", "تموز", "آب", "أيلول", "تشرين الأول", "تشرين الثاني", "كانون الأول"];
 
+    // جلب البيانات والصور عند البداية
     db.ref('sheikhPhoto').on('value', (s) => { if(s.val()) document.getElementById('sheikhImg').src = s.val(); });
+    db.ref('bannerPhoto').on('value', (s) => { if(s.val()) document.getElementById('bannerSection').style.backgroundImage = `url('${s.val()}')`; });
     db.ref('members').on('value', (s) => { membersData = s.val() || []; updateUI(); });
     db.ref('financials_v2').on('value', (s) => { financials = s.val() || { prevBalance: 0, expenses: [] }; updateUI(); });
 
-    function updateUI() {
-        let monthlyPaid = 0;
-        let totalPeople = 0;
-
-        membersData.forEach(m => { 
-            const peopleCount = 1 + (m.family ? m.family.length : 0);
-            totalPeople += peopleCount;
-            const monthCount = (Array.isArray(m.payMonths) && m.payMonths.length > 0) ? m.payMonths.length : 0;
-            const calculatedTotal = peopleCount * 2000 * monthCount;
-            if(m.paid) monthlyPaid += calculatedTotal; 
-        });
-        
-        let totalExp = 0;
-        const expArray = Array.isArray(financials.expenses) ? financials.expenses : [];
-        const expDiv = document.getElementById('expenseDisplay');
-        expDiv.innerHTML = '';
-        expArray.forEach((e, idx) => { 
-            totalExp += Number(e.amount || 0); 
-            let delBtn = isAdmin ? `<span class="btn-del-exp" onclick="deleteExpense(${idx})">حذف ❌</span>` : '';
-            expDiv.innerHTML += `<div class="expense-log">${delBtn}<b>${Number(e.amount).toLocaleString()}</b> - ${e.note} <br><small>${e.date}</small></div>`;
-        });
-
-        document.getElementById('prevBalanceVal').innerText = Number(financials.prevBalance || 0).toLocaleString() + " د.ع";
-        document.getElementById('monthlyTotal').innerText = monthlyPaid.toLocaleString() + " د.ع";
-        document.getElementById('expenseTotal').innerText = totalExp.toLocaleString() + " د.ع";
-        document.getElementById('finalBalance').innerText = ((Number(financials.prevBalance || 0) + monthlyPaid) - totalExp).toLocaleString() + " د.ع";
-        document.getElementById('totalPeopleCount').innerText = totalPeople + " فرد";
-        
-        const now = new Date();
-        document.getElementById('currentDateDisplay').innerText = monthsNames[now.getMonth()] + " " + now.getFullYear();
-        render();
+    function uploadBannerPhoto(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const base64Image = e.target.result;
+                db.ref('bannerPhoto').set(base64Image);
+                document.getElementById('bannerSection').style.backgroundImage = `url('${base64Image}')`;
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
     }
 
     function uploadSheikhPhoto(input) {
@@ -269,6 +246,7 @@
             document.getElementById('prevBalanceEdit').style.display = 'block';
             document.getElementById('adminExpensePanel').style.display = 'block';
             document.getElementById('uploadLabel').style.display = 'block';
+            document.getElementById('bannerLabel').style.display = 'block'; // تفعيل زر الشعار
             updateUI();
         } else { alert("خطأ!"); }
     }
@@ -276,11 +254,40 @@
     function openLogin() { document.getElementById('loginOverlay').style.display = 'flex'; }
     function closeLogin() { document.getElementById('loginOverlay').style.display = 'none'; }
 
+    // بقية الدوال (updateUI, render, toggleMonth, إلخ) تبقى كما هي تماماً 100%
+    function updateUI() {
+        let monthlyPaid = 0;
+        let totalPeople = 0;
+        membersData.forEach(m => { 
+            const peopleCount = 1 + (m.family ? m.family.length : 0);
+            totalPeople += peopleCount;
+            const monthCount = (Array.isArray(m.payMonths) && m.payMonths.length > 0) ? m.payMonths.length : 0;
+            const calculatedTotal = peopleCount * 2000 * monthCount;
+            if(m.paid) monthlyPaid += calculatedTotal; 
+        });
+        let totalExp = 0;
+        const expArray = Array.isArray(financials.expenses) ? financials.expenses : [];
+        const expDiv = document.getElementById('expenseDisplay');
+        expDiv.innerHTML = '';
+        expArray.forEach((e, idx) => { 
+            totalExp += Number(e.amount || 0); 
+            let delBtn = isAdmin ? `<span class="btn-del-exp" onclick="deleteExpense(${idx})">حذف ❌</span>` : '';
+            expDiv.innerHTML += `<div class="expense-log">${delBtn}<b>${Number(e.amount).toLocaleString()}</b> - ${e.note} <br><small>${e.date}</small></div>`;
+        });
+        document.getElementById('prevBalanceVal').innerText = Number(financials.prevBalance || 0).toLocaleString() + " د.ع";
+        document.getElementById('monthlyTotal').innerText = monthlyPaid.toLocaleString() + " د.ع";
+        document.getElementById('expenseTotal').innerText = totalExp.toLocaleString() + " د.ع";
+        document.getElementById('finalBalance').innerText = ((Number(financials.prevBalance || 0) + monthlyPaid) - totalExp).toLocaleString() + " د.ع";
+        document.getElementById('totalPeopleCount').innerText = totalPeople + " فرد";
+        const now = new Date();
+        document.getElementById('currentDateDisplay').innerText = monthsNames[now.getMonth()] + " " + now.getFullYear();
+        render();
+    }
+
     function render() {
         const container = document.getElementById('membersList');
         const search = document.getElementById('searchInput').value.toLowerCase();
         container.innerHTML = '';
-
         membersData.forEach((m, i) => {
             if(m.name.toLowerCase().includes(search)) {
                 const cardColorClass = m.paid ? 'paid-member' : 'unpaid-member';
@@ -290,53 +297,17 @@
                 const monthCount = (Array.isArray(m.payMonths) && m.payMonths.length > 0) ? m.payMonths.length : 0;
                 const calculatedAmount = totalInFamily * 2000 * monthCount;
                 if(m.amount !== calculatedAmount) { updateM(i, 'amount', calculatedAmount); }
-
                 let monthsDisplay = (monthCount > 0) ? m.payMonths.join(" - ") : "---";
-
                 if(!isAdmin) {
                     let familyNames = m.family ? m.family.filter(n => n).join(" - ") : "لا يوجد أفراد مضافين";
-                    card.innerHTML = `
-                        <span class="family-head-name">${m.name}</span>
-                        <p style="color:#2c3e50; font-weight:bold; margin-top:0;">👪 مجموع أفراد الأسرة: ${totalInFamily}</p>
-                        <div class="family-section"><span class="family-title">الأسماء:</span><small>${familyNames}</small></div>
-                        <hr>
-                        <p><b>المبلغ الكلي:</b> ${Number(calculatedAmount).toLocaleString()} د.ع</p>
-                        <p><b>دفع عن أشهر:</b> <br><span style="color:#8e44ad; font-weight:bold;">${monthsDisplay}</span></p>
-                        <p><b>الحالة:</b> ${m.paid ? '<b style="color:green">✅ دافع</b>' : '<b style="color:red">❌ غير دافع</b>'}</p>
-                    `;
+                    card.innerHTML = `<span class="family-head-name">${m.name}</span><p style="color:#2c3e50; font-weight:bold; margin-top:0;">👪 مجموع أفراد الأسرة: ${totalInFamily}</p><div class="family-section"><span class="family-title">الأسماء:</span><small>${familyNames}</small></div><hr><p><b>المبلغ الكلي:</b> ${Number(calculatedAmount).toLocaleString()} د.ع</p><p><b>دفع عن أشهر:</b> <br><span style="color:#8e44ad; font-weight:bold;">${monthsDisplay}</span></p><p><b>الحالة:</b> ${m.paid ? '<b style="color:green">✅ دافع</b>' : '<b style="color:red">❌ غير دافع</b>'}</p>`;
                 } else {
                     let familyInputs = '';
-                    if(m.family) {
-                        m.family.forEach((fName, fIdx) => {
-                            familyInputs += `<div class="family-input-container">
-                                <input class="family-input" value="${fName}" onchange="updateFamily(${i}, ${fIdx}, this.value)">
-                                <span style="cursor:pointer" onclick="deleteFamilyMember(${i}, ${fIdx})">❌</span>
-                            </div>`;
-                        });
-                    }
+                    if(m.family) { m.family.forEach((fName, fIdx) => { familyInputs += `<div class="family-input-container"><input class="family-input" value="${fName}" onchange="updateFamily(${i}, ${fIdx}, this.value)"><span style="cursor:pointer" onclick="deleteFamilyMember(${i}, ${fIdx})">❌</span></div>`; }); }
                     let monthsHtml = `<div class="months-grid">`;
-                    monthsNames.forEach(month => {
-                        const isSelected = Array.isArray(m.payMonths) && m.payMonths.includes(month);
-                        monthsHtml += `<div class="month-btn ${isSelected ? 'selected' : ''}" onclick="toggleMonth(${i}, '${month}')">${month}</div>`;
-                    });
+                    monthsNames.forEach(month => { const isSelected = Array.isArray(m.payMonths) && m.payMonths.includes(month); monthsHtml += `<div class="month-btn ${isSelected ? 'selected' : ''}" onclick="toggleMonth(${i}, '${month}')">${month}</div>`; });
                     monthsHtml += `</div>`;
-                    card.innerHTML = `
-                        <label>رب الأسرة (الاسم):</label>
-                        <input class="edit-input" style="font-size:1.2em" value="${m.name}" onchange="updateM(${i},'name',this.value)">
-                        <div class="family-section">
-                            <span class="family-title">أفراد العائلة:</span>
-                            ${familyInputs}
-                            <button class="btn-family" onclick="addFamilyMember(${i})">+ إضافة فرد</button>
-                        </div>
-                        <label>دفع عن أشهر:</label>
-                        ${monthsHtml}
-                        <label style="display:block; margin-top:10px;">المبلغ: ${Number(calculatedAmount).toLocaleString()} د.ع</label>
-                        <select class="edit-input" onchange="updateM(${i},'paid',this.value==='true')">
-                            <option value="false" ${!m.paid?'selected':''}>غير دافع</option>
-                            <option value="true" ${m.paid?'selected':''}>دافع</option>
-                        </select>
-                        <button class="btn-del" onclick="deleteM(${i})">حذف السجل</button>
-                    `;
+                    card.innerHTML = `<label>رب الأسرة (الاسم):</label><input class="edit-input" style="font-size:1.2em" value="${m.name}" onchange="updateM(${i},'name',this.value)"><div class="family-section"><span class="family-title">أفراد العائلة:</span>${familyInputs}<button class="btn-family" onclick="addFamilyMember(${i})">+ إضافة فرد</button></div><label>دفع عن أشهر:</label>${monthsHtml}<label style="display:block; margin-top:10px;">المبلغ: ${Number(calculatedAmount).toLocaleString()} د.ع</label><select class="edit-input" onchange="updateM(${i},'paid',this.value==='true')"><option value="false" ${!m.paid?'selected':''}>غير دافع</option><option value="true" ${m.paid?'selected':''}>دافع</option></select><button class="btn-del" onclick="deleteM(${i})">حذف السجل</button>`;
                 }
                 container.appendChild(card);
             }
@@ -353,13 +324,9 @@
         if(!Array.isArray(membersData[memberIdx].payMonths)) membersData[memberIdx].payMonths = [];
         const index = membersData[memberIdx].payMonths.indexOf(monthName);
         if(index > -1) membersData[memberIdx].payMonths.splice(index, 1);
-        else {
-            membersData[memberIdx].payMonths.push(monthName);
-            membersData[memberIdx].payMonths.sort((a, b) => monthsNames.indexOf(a) - monthsNames.indexOf(b));
-        }
+        else { membersData[memberIdx].payMonths.push(monthName); membersData[memberIdx].payMonths.sort((a, b) => monthsNames.indexOf(a) - monthsNames.indexOf(b)); }
         db.ref('members').set(membersData);
     }
-
     function updateM(i, f, v) { membersData[i][f] = v; db.ref('members').set(membersData); }
     function addFamilyMember(mIdx) { if(!membersData[mIdx].family) membersData[mIdx].family = []; membersData[mIdx].family.push(""); db.ref('members').set(membersData); }
     function updateFamily(mIdx, fIdx, val) { membersData[mIdx].family[fIdx] = val; db.ref('members').set(membersData); }
