@@ -38,7 +38,6 @@ z-index: 2;
 }
 .header-text h1 { margin: 0; font-size: 1.8em; font-weight: 900; }
 .header-text h2 { margin: 0; font-size: 1.5em; color: #34495e; }
-/* عبارة عشيرة ال جهل باللون الأسود الداكن */
 .header-text h3 { margin: 0; font-size: 1.3em; color: #000000; font-weight: bold; }
 
 .sheikh-photo-container { text-align: center; z-index: 2; }
@@ -316,34 +315,43 @@ function shareReport(memberIdx) {
     const totalInFamily = 1 + (m.family ? m.family.length : 0);
     const monthCount = (Array.isArray(m.payMonths) && m.payMonths.length > 0) ? m.payMonths.length : 0;
     const amount = totalInFamily * 2000 * monthCount;
-    const months = (monthCount > 0) ? m.payMonths.join("، ") : "لا يوجد دفعات مسجلة";
-    const status = m.paid ? "✅ تم الدفع بنجاح" : "❌ بانتظار الدفع";
+    const months = (monthCount > 0) ? m.payMonths.join("، ") : "لم يتم تحديد أشهر";
     
-    // معالجة رقم الهاتف لإضافة كود العراق تلقائياً
+    // معالجة رقم الهاتف وإضافة كود العراق تلقائياً
     let rawPhone = m.phone ? m.phone.toString().replace(/\s+/g, '') : "";
     let finalPhone = "";
-    
     if(rawPhone) {
-        // إذا بدأ الرقم بصفر، نحذفه
-        if(rawPhone.startsWith('0')) {
-            rawPhone = rawPhone.substring(1);
-        }
-        // إذا لم يكن كود العراق موجوداً، نضيفه
-        if(!rawPhone.startsWith('964')) {
-            finalPhone = '964' + rawPhone;
-        } else {
-            finalPhone = rawPhone;
-        }
+        if(rawPhone.startsWith('0')) rawPhone = rawPhone.substring(1);
+        if(!rawPhone.startsWith('964')) finalPhone = '964' + rawPhone;
+        else finalPhone = rawPhone;
     }
 
-    const message = `*تقرير صندوق الفاتحة لعام 2026*%0A` +
-                    `*عشيرة ال جهل*%0A%0A` +
-                    `*الاسم:* ${m.name}%0A` +
-                    `*عدد الأفراد:* ${totalInFamily}%0A` +
-                    `*الأشهر المدفوعة:* ${months}%0A` +
-                    `*المبلغ الإجمالي:* ${amount.toLocaleString()} د.ع%0A` +
-                    `*الحالة:* ${status}%0A%0A` +
-                    `_ملاحظة: هذا تقرير آلي لتذكيركم بمدفوعاتكم في الصندوق._`;
+    let message = "";
+    if (m.paid) {
+        // رسالة شكر للدافعين
+        message = `*بطاقة شكر وتوثيق* ✅%0A` +
+                  `*عشيرة ال جهل*%0A%0A` +
+                  `الأخ الفاضل: *${m.name}*%0A` +
+                  `نشكركم على مساهمتكم في دعم صندوق العشيرة.%0A%0A` +
+                  `*التفاصيل الموثقة:*%0A` +
+                  `- عدد الأفراد: ${totalInFamily}%0A` +
+                  `- الأشهر المدفوعة: ${months}%0A` +
+                  `- المبلغ المستلم: ${amount.toLocaleString()} د.ع%0A` +
+                  `- الحالة: تم استلام المبلغ بنجاح ✅%0A%0A` +
+                  `جزاكم الله خيراً.`;
+    } else {
+        // رسالة تذكير لغير الدافعين
+        message = `*تذكير بالمساهمة في الصندوق* 🔔%0A` +
+                  `*عشيرة ال جهل*%0A%0A` +
+                  `الأخ الفاضل: *${m.name}*%0A` +
+                  `نود تذكيركم بالمساهمة الشهرية لصندوق الفاتحة للعشيرة لضمان استمرارية عمل الصندوق في خدمة الجميع.%0A%0A` +
+                  `*التفاصيل المطلوبة:*%0A` +
+                  `- عدد الأفراد: ${totalInFamily}%0A` +
+                  `- الأشهر المستحقة: ${months}%0A` +
+                  `- المبلغ الإجمالي: ${amount.toLocaleString()} د.ع%0A` +
+                  `- الحالة: بانتظار المساهمة ❌%0A%0A` +
+                  `شاكرين تعاونكم وتفهمكم.`;
+    }
     
     if(finalPhone) {
         window.open(`https://wa.me/${finalPhone}?text=${message}`, '_blank');
