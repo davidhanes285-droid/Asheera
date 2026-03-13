@@ -292,6 +292,7 @@ db.ref('financials_v2/expenses').set(currentExp);
 
 function deleteExpense(idx) { if(confirm("حذف؟")) { financials.expenses.splice(idx, 1); db.ref('financials_v2/expenses').set(financials.expenses); } }
 
+// وظيفة إرسال الرسالة بصياغة مختصرة وواضحة جداً
 function sendThanks(memberIdx) {
     const m = membersData[memberIdx];
     const finalBalance = document.getElementById('finalBalance').innerText;
@@ -307,24 +308,24 @@ function sendThanks(memberIdx) {
         if(state === 2) unpaidList.push(month);
     });
     
-    if(paidList.length === 0 && unpaidList.length === 0) { alert("لا توجد بيانات سداد لإرسالها!"); return; }
+    if(paidList.length === 0 && unpaidList.length === 0) { alert("لا توجد بيانات سداد!"); return; }
 
-    let message = `*شكر وتقدير من صندوق الفاتحة* 🌸%0A%0A` +
+    // الصياغة المختصرة والجديدة
+    let message = `*صندوق الفاتحة*%0A%0A` +
                   `الأخ العزيز: *${m.name}*%0A`;
     
     if(paidList.length > 0) {
-        message += `تم *دفع* اشتراك الأشهر التالية بنجاح: *(${paidList.join("، ")})*%0A%0A`;
+        message += `تم بحمد الله *دفع* اشتراك الأشهر: *(${paidList.join("، ")})*%0A%0A`;
     }
     
     if(unpaidList.length > 0) {
-        message += `⚠️ *تنويه بخصوص الأشهر المتبقية:*%0A` +
-                   `يرجى ملاحظة أن الأشهر التالية غير مدفوعة: *(${unpaidList.join("، ")})*%0A` +
-                   `إجمالي المبلغ المطلوب لها هو: *(${(unpaidList.length * amountPerMonth).toLocaleString()} د.ع)*.%0A%0A`;
+        message += `*متبقي بذمتكم الأشهر التالية:*%0A` +
+                   `الأشهر: (${unpaidList.join("، ")})%0A` +
+                   `المبلغ المطلوب: *(${(unpaidList.length * amountPerMonth).toLocaleString()} د.ع)*%0A%0A`;
     }
 
-    message += `*الشفافية والأثر:*%0A` +
-               `بفضل مساهمتكم ومساهمة الإخوة، وصل رصيد الصندوق الحالي إلى *(${finalBalance})*.%0A%0A` +
-               `*شكراً لالتزامكم.. يداً بيد لخدمة صندوق الفاتحة.* 🙏`;
+    message += `رصيد الصندوق الكلي: *(${finalBalance})*%0A` +
+               `شكراً لالتزامكم.. يداً بيد لخدمة صندوق الفاتحة.`;
     
     const phoneList = Array.isArray(m.phones) ? m.phones : (m.phone ? [m.phone] : []);
     if(phoneList.length === 0) { alert("لا يوجد رقم هاتف!"); return; }
@@ -402,7 +403,7 @@ if(!isAdmin) {
     <label>أفراد العائلة:</label>
     <div class="family-section">${familyInputs}<button class="btn-family" onclick="addFamilyMember(${i})">+ إضافة فرد</button></div>
     <label>حالة الأشهر:</label>${monthsHtml}
-    <button class="btn-thanks" onclick="sendThanks(${i})">🌸 إرسال رسالة شكر ودفع</button>
+    <button class="btn-thanks" onclick="sendThanks(${i})">إرسال تفاصيل الدفع (واتساب)</button>
     <button class="btn-del" onclick="deleteM(${i})">حذف العضو</button>`;
 }
 container.appendChild(card);
