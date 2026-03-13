@@ -82,7 +82,7 @@ cursor: pointer;
 
 .member-list { display: flex; flex-wrap: wrap; gap: 20px; padding: 20px; justify-content: center; }
 
-.member-card { background: white; border-radius: 15px; padding: 20px; width: 320px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); border-top: 5px solid #3498db; transition: 0.3s; position: relative;}
+.member-card { background: white; border-radius: 15px; padding: 20px; width: 320px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); border-top: 5px solid #3498db; transition: 0.3s; position: relative; }
 .paid-member { background-color: #e8f8f5 !important; border-top: 5px solid #27ae60 !important; }
 .unpaid-member { background-color: #fdedec !important; border-top: 5px solid #e74c3c !important; }
 
@@ -112,7 +112,6 @@ button { cursor: pointer; border: none; border-radius: 6px; padding: 10px 15px; 
 .btn-del { background: #c0392b; color: white; width: 100%; margin-top: 10px; }
 .btn-family { background: #9b59b6; color: white; font-size: 0.8em; margin-bottom: 10px; width: 100%; }
 
-/* تنسيق زر التقرير */
 .btn-report { background: #25d366; color: white; width: 100%; margin-top: 10px; font-size: 0.9em; display: flex; align-items: center; justify-content: center; gap: 8px; }
 .btn-report:hover { background: #128c7e; }
 </style>
@@ -311,7 +310,6 @@ db.ref('financials_v2/expenses').set(currentExp);
 
 function deleteExpense(idx) { if(confirm("حذف؟")) { financials.expenses.splice(idx, 1); db.ref('financials_v2/expenses').set(financials.expenses); } }
 
-// وظيفة توليد تقرير للواتساب
 function shareReport(memberIdx) {
     const m = membersData[memberIdx];
     const totalInFamily = 1 + (m.family ? m.family.length : 0);
@@ -319,6 +317,7 @@ function shareReport(memberIdx) {
     const amount = totalInFamily * 2000 * monthCount;
     const months = (monthCount > 0) ? m.payMonths.join("، ") : "لا يوجد دفعات مسجلة";
     const status = m.paid ? "✅ تم الدفع بنجاح" : "❌ بانتظار الدفع";
+    const phone = m.phone ? m.phone.replace(/\s+/g, '') : "";
 
     const message = `*تقرير صندوق الفاتحة لعام 2026*%0A` +
                     `*عشيرة ال جهل*%0A%0A` +
@@ -329,7 +328,11 @@ function shareReport(memberIdx) {
                     `*الحالة:* ${status}%0A%0A` +
                     `_ملاحظة: هذا تقرير آلي لتذكيركم بمدفوعاتكم في الصندوق._`;
     
-    window.open(`https://wa.me/?text=${message}`, '_blank');
+    if(phone) {
+        window.open(`https://wa.me/${phone}?text=${message}`, '_blank');
+    } else {
+        window.open(`https://wa.me/?text=${message}`, '_blank');
+    }
 }
 
 function render() {
@@ -359,7 +362,9 @@ if(m.family) { m.family.forEach((fName, fIdx) => { familyInputs += `<div class="
 let monthsHtml = `<div class="months-grid">`;
 monthsNames.forEach(month => { const isSelected = Array.isArray(m.payMonths) && m.payMonths.includes(month); monthsHtml += `<div class="month-btn ${isSelected ? 'selected' : ''}" onclick="toggleMonth(${i}, '${month}')">${month}</div>`; });
 monthsHtml += `</div>`;
-card.innerHTML = `<label>رب العائلة (الاسم):</label><input class="edit-input" style="font-size:1.2em" value="${m.name}" onchange="updateM(${i},'name',this.value)"><div class="family-section"><span class="family-title">أفراد العائلة:</span>${familyInputs}<button class="btn-family" onclick="addFamilyMember(${i})">+ إضافة فرد</button></div><label>دفع عن أشهر:</label>${monthsHtml}<label style="display:block; margin-top:10px;">المبلغ: ${Number(calculatedAmount).toLocaleString()} د.ع</label><select class="edit-input" onchange="updateM(${i},'paid',this.value==='true')"><option value="false" ${!m.paid?'selected':''}>غير دافع</option><option value="true" ${m.paid?'selected':''}>دافع</option></select>
+card.innerHTML = `<label>رب العائلة (الاسم):</label><input class="edit-input" style="font-size:1.2em" value="${m.name}" onchange="updateM(${i},'name',this.value)">
+<label>رقم الهاتف (واتساب):</label><input class="edit-input" placeholder="مثال: 9647700000000" value="${m.phone || ''}" onchange="updateM(${i},'phone',this.value)">
+<div class="family-section"><span class="family-title">أفراد العائلة:</span>${familyInputs}<button class="btn-family" onclick="addFamilyMember(${i})">+ إضافة فرد</button></div><label>دفع عن أشهر:</label>${monthsHtml}<label style="display:block; margin-top:10px;">المبلغ: ${Number(calculatedAmount).toLocaleString()} د.ع</label><select class="edit-input" onchange="updateM(${i},'paid',this.value==='true')"><option value="false" ${!m.paid?'selected':''}>غير دافع</option><option value="true" ${m.paid?'selected':''}>دافع</option></select>
 <button class="btn-report" onclick="shareReport(${i})">📱 إرسال تقرير (واتساب)</button>
 <button class="btn-del" onclick="deleteM(${i})">حذف السجل</button>`;
 }
@@ -370,7 +375,7 @@ container.appendChild(card);
 if(isAdmin) {
 const b = document.createElement('button');
 b.className = 'btn-add'; b.innerText = '+ إضافة رب عائلة جديد';
-b.onclick = () => { membersData.push({name:'اسم جديد', amount:0, paid:false, family:[], payMonths:[]}); db.ref('members').set(membersData); };
+b.onclick = () => { membersData.push({name:'اسم جديد', phone:'', amount:0, paid:false, family:[], payMonths:[]}); db.ref('members').set(membersData); };
 container.appendChild(b);
 }
 }
