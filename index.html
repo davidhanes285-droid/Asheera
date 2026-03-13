@@ -158,7 +158,7 @@ button { cursor: pointer; border: none; border-radius: 6px; padding: 10px 15px; 
     </div>
 </div>
 
-<div class="stat-item item-in">مجموع دفعات الشهر<span id="monthlyTotal" class="val">0</span></div>
+<div class="stat-item item-in">مجموع دفعات الصندوق<span id="monthlyTotal" class="val">0</span></div>
 
 <div class="stat-item item-out">
 إجمالي المصروفات
@@ -257,19 +257,18 @@ function openLogin() { document.getElementById('loginOverlay').style.display = '
 function closeLogin() { document.getElementById('loginOverlay').style.display = 'none'; }
 
 function updateUI() {
-let monthlyPaid = 0;
+let totalIncome = 0;
 let totalPeople = 0;
 membersData.forEach(m => {
 const peopleCount = 1 + (m.family ? m.family.length : 0);
 totalPeople += peopleCount;
-const monthCount = (Array.isArray(m.payMonths) && m.payMonths.length > 0) ? m.payMonths.length : 0;
-const calculatedTotal = peopleCount * 2000 * monthCount;
-if(m.paid) monthlyPaid += calculatedTotal;
+const paidCount = (Array.isArray(m.payMonths)) ? m.payMonths.length : 0;
+totalIncome += (peopleCount * 2000 * paidCount);
 });
 
 let prevBalanceValue = Number(financials.prevBalance || 0);
 document.getElementById('prevBalanceVal').innerText = prevBalanceValue.toLocaleString() + " د.ع";
-document.getElementById('monthlyTotal').innerText = monthlyPaid.toLocaleString() + " د.ع";
+document.getElementById('monthlyTotal').innerText = totalIncome.toLocaleString() + " د.ع";
 
 let totalExp = 0;
 const expArray = Array.isArray(financials.expenses) ? financials.expenses : [];
@@ -281,7 +280,7 @@ let delBtn = isAdmin ? `<span class="btn-del-exp" onclick="deleteExpense(${idx})
 expDiv.innerHTML += `<div class="expense-log">${delBtn}<b>${Number(e.amount).toLocaleString()}</b> - ${e.note} <br><small>${e.date}</small></div>`;
 });
 document.getElementById('expenseTotal').innerText = totalExp.toLocaleString() + " د.ع";
-document.getElementById('finalBalance').innerText = ((prevBalanceValue + monthlyPaid) - totalExp).toLocaleString() + " د.ع";
+document.getElementById('finalBalance').innerText = ((prevBalanceValue + totalIncome) - totalExp).toLocaleString() + " د.ع";
 document.getElementById('totalPeopleCount').innerText = totalPeople + " فرد";
 
 const now = new Date();
@@ -292,9 +291,8 @@ render();
 
 function updatePrevBalance() {
 const val = document.getElementById('prevBalanceInput').value;
-if(val === "") { alert("يرجى إدخال مبلغ"); return; }
+if(val === "") { alert("يرجى إدخل مبلغ"); return; }
 db.ref('financials_v2/prevBalance').set(Number(val));
-alert("تم تحديث الرصيد السابق بنجاح");
 document.getElementById('prevBalanceInput').value = "";
 }
 
@@ -313,11 +311,22 @@ function deleteExpense(idx) { if(confirm("حذف؟")) { financials.expenses.spli
 function shareReport(memberIdx) {
     const m = membersData[memberIdx];
     const totalInFamily = 1 + (m.family ? m.family.length : 0);
-    const monthCount = (Array.isArray(m.payMonths) && m.payMonths.length > 0) ? m.payMonths.length : 0;
-    const amount = totalInFamily * 2000 * monthCount;
-    const months = (monthCount > 0) ? m.payMonths.join("، ") : "لم يتم تحديد أشهر";
+    const amountPerMonth = totalInFamily * 2000;
     
-    // معالجة رقم الهاتف وإضافة كود العراق تلقائياً
+    // جرد الأشهر
+    const paidMonths = Array.isArray(m.payMonths) ? m.payMonths : [];
+    const currentMonthIdx = new Date().getMonth();
+    
+    let unpaidMonthsList = [];
+    for(let i=0; i <= currentMonthIdx; i++) {
+        if(!paidMonths.includes(monthsNames[i])) {
+            unpaidMonthsList.push(monthsNames[i]);
+        }
+    }
+
+    const totalPaidAmount = paidMonths.length * amountPerMonth;
+    const totalUnpaidAmount = unpaidMonthsList.length * amountPerMonth;
+    
     let rawPhone = m.phone ? m.phone.toString().replace(/\s+/g, '') : "";
     let finalPhone = "";
     if(rawPhone) {
@@ -326,37 +335,22 @@ function shareReport(memberIdx) {
         else finalPhone = rawPhone;
     }
 
-    let message = "";
-    if (m.paid) {
-        // رسالة شكر للدافعين
-        message = `*بطاقة شكر وتوثيق* ✅%0A` +
+    let statusHeader = unpaidMonthsList.length === 0 ? "*شكراً لالتزامكم* ✅" : "*تذكير بالمساهمة* 🔔";
+    
+    let message = `${statusHeader}%0A` +
                   `*عشيرة ال جهل*%0A%0A` +
                   `الأخ الفاضل: *${m.name}*%0A` +
-                  `نشكركم على مساهمتكم في دعم صندوق العشيرة.%0A%0A` +
-                  `*التفاصيل الموثقة:*%0A` +
-                  `- عدد الأفراد: ${totalInFamily}%0A` +
-                  `- الأشهر المدفوعة: ${months}%0A` +
-                  `- المبلغ المستلم: ${amount.toLocaleString()} د.ع%0A` +
-                  `- الحالة: تم استلام المبلغ بنجاح ✅%0A%0A` +
-                  `جزاكم الله خيراً.`;
-    } else {
-        // رسالة تذكير لغير الدافعين
-        message = `*تذكير بالمساهمة في الصندوق* 🔔%0A` +
-                  `*عشيرة ال جهل*%0A%0A` +
-                  `الأخ الفاضل: *${m.name}*%0A` +
-                  `نود تذكيركم بالمساهمة الشهرية لصندوق الفاتحة للعشيرة لضمان استمرارية عمل الصندوق في خدمة الجميع.%0A%0A` +
-                  `*التفاصيل المطلوبة:*%0A` +
-                  `- عدد الأفراد: ${totalInFamily}%0A` +
-                  `- الأشهر المستحقة: ${months}%0A` +
-                  `- المبلغ الإجمالي: ${amount.toLocaleString()} د.ع%0A` +
-                  `- الحالة: بانتظار المساهمة ❌%0A%0A` +
-                  `شاكرين تعاونكم وتفهمكم.`;
-    }
+                  `عدد أفراد العائلة: ${totalInFamily}%0A%0A` +
+                  `*✅ الأشهر المدفوعة:* ${paidMonths.length > 0 ? paidMonths.join("، ") : "لا يوجد"}%0A` +
+                  `*💰 إجمالي ما تم دفعه:* ${totalPaidAmount.toLocaleString()} د.ع%0A%0A` +
+                  `*⚠️ الأشهر المستحقة:* ${unpaidMonthsList.length > 0 ? unpaidMonthsList.join("، ") : "لا يوجد - ملتزم"}%0A` +
+                  `*💵 مبلغ الدين المتبقي:* ${totalUnpaidAmount.toLocaleString()} د.ع%0A%0A` +
+                  `_ملاحظة: مبلغ الفرد الواحد شهرياً هو 2,000 د.ع._`;
     
     if(finalPhone) {
         window.open(`https://wa.me/${finalPhone}?text=${message}`, '_blank');
     } else {
-        alert("يرجى إدخال رقم الهاتف أولاً");
+        alert("يرجى إدخال رقم الهاتف");
     }
 }
 
@@ -370,28 +364,31 @@ const headNameMatch = m.name.toLowerCase().includes(search);
 const familyNamesMatch = m.family && m.family.some(fName => fName.toLowerCase().includes(search));
 
 if(headNameMatch || familyNamesMatch) {
-const cardColorClass = m.paid ? 'paid-member' : 'unpaid-member';
-const card = document.createElement('div');
-card.className = `member-card ${cardColorClass} ${isAdmin ? 'admin-mode-card' : ''}`;
-const totalInFamily = 1 + (m.family ? m.family.length : 0);
-const monthCount = (Array.isArray(m.payMonths) && m.payMonths.length > 0) ? m.payMonths.length : 0;
-const calculatedAmount = totalInFamily * 2000 * monthCount;
-let monthsDisplay = (monthCount > 0) ? m.payMonths.join(" - ") : "---";
+    const paidMonths = Array.isArray(m.payMonths) ? m.payMonths : [];
+    const currentMonthIdx = new Date().getMonth();
+    let isDelayed = false;
+    for(let x=0; x <= currentMonthIdx; x++) { if(!paidMonths.includes(monthsNames[x])) isDelayed = true; }
+
+    const cardColorClass = isDelayed ? 'unpaid-member' : 'paid-member';
+    const card = document.createElement('div');
+    card.className = `member-card ${cardColorClass} ${isAdmin ? 'admin-mode-card' : ''}`;
+    const totalInFamily = 1 + (m.family ? m.family.length : 0);
 
 if(!isAdmin) {
-let familyNames = m.family ? m.family.filter(n => n).join(" - ") : "لا يوجد أفراد مضافين";
-card.innerHTML = `<span class="family-head-name">${m.name}</span><p style="color:#2c3e50; font-weight:bold; margin-top:0;">👪 مجموع أفراد العائلة: ${totalInFamily}</p><div class="family-section"><span class="family-title">الأسماء:</span><small>${familyNames}</small></div><hr><p><b>المبلغ الكلي:</b> ${Number(calculatedAmount).toLocaleString()} د.ع</p><p><b>دفع عن أشهر:</b> <br><span style="color:#8e44ad; font-weight:bold;">${monthsDisplay}</span></p><p><b>الحالة:</b> ${m.paid ? '<b style="color:green">✅ دافع</b>' : '<b style="color:red">❌ غير دافع</b>'}</p>`;
+    let familyNames = m.family ? m.family.filter(n => n).join(" - ") : "لا يوجد أفراد";
+    card.innerHTML = `<span class="family-head-name">${m.name}</span><p>👪 الأفراد: ${totalInFamily}</p><div class="family-section"><span class="family-title">الأسماء:</span><small>${familyNames}</small></div><hr><p><b>المدفوع:</b> ${paidMonths.join(" - ") || "لا يوجد"}</p><p><b>الحالة:</b> ${isDelayed ? '<b style="color:red">⚠️ يوجد متبقي</b>' : '<b style="color:green">✅ مسدد بالكامل</b>'}</p>`;
 } else {
-let familyInputs = '';
-if(m.family) { m.family.forEach((fName, fIdx) => { familyInputs += `<div class="family-input-container"><input class="family-input" value="${fName}" onchange="updateFamily(${i}, ${fIdx}, this.value)"><span style="cursor:pointer" onclick="deleteFamilyMember(${i}, ${fIdx})">❌</span></div>`; }); }
-let monthsHtml = `<div class="months-grid">`;
-monthsNames.forEach(month => { const isSelected = Array.isArray(m.payMonths) && m.payMonths.includes(month); monthsHtml += `<div class="month-btn ${isSelected ? 'selected' : ''}" onclick="toggleMonth(${i}, '${month}')">${month}</div>`; });
-monthsHtml += `</div>`;
-card.innerHTML = `<label>رب العائلة (الاسم):</label><input class="edit-input" style="font-size:1.2em" value="${m.name}" onchange="updateM(${i},'name',this.value)">
-<label>رقم الهاتف (بدون كود الدولة):</label><input type="text" class="edit-input" placeholder="7700000000" value="${m.phone || ''}" onchange="updateM(${i},'phone',this.value)">
-<div class="family-section"><span class="family-title">أفراد العائلة:</span>${familyInputs}<button class="btn-family" onclick="addFamilyMember(${i})">+ إضافة فرد</button></div><label>دفع عن أشهر:</label>${monthsHtml}<label style="display:block; margin-top:10px;">المبلغ: ${Number(calculatedAmount).toLocaleString()} د.ع</label><select class="edit-input" onchange="updateM(${i},'paid',this.value==='true')"><option value="false" ${!m.paid?'selected':''}>غير دافع</option><option value="true" ${m.paid?'selected':''}>دافع</option></select>
-<button class="btn-report" onclick="shareReport(${i})">📱 إرسال تقرير (واتساب)</button>
-<button class="btn-del" onclick="deleteM(${i})">حذف السجل</button>`;
+    let familyInputs = '';
+    if(m.family) { m.family.forEach((fName, fIdx) => { familyInputs += `<div class="family-input-container"><input class="family-input" value="${fName}" onchange="updateFamily(${i}, ${fIdx}, this.value)"><span style="cursor:pointer" onclick="deleteFamilyMember(${i}, ${fIdx})">❌</span></div>`; }); }
+    let monthsHtml = `<div class="months-grid">`;
+    monthsNames.forEach(month => { const isSelected = paidMonths.includes(month); monthsHtml += `<div class="month-btn ${isSelected ? 'selected' : ''}" onclick="toggleMonth(${i}, '${month}')">${month}</div>`; });
+    monthsHtml += `</div>`;
+    card.innerHTML = `<label>الاسم:</label><input class="edit-input" value="${m.name}" onchange="updateM(${i},'name',this.value)">
+    <label>الهاتف:</label><input type="text" class="edit-input" placeholder="770..." value="${m.phone || ''}" onchange="updateM(${i},'phone',this.value)">
+    <div class="family-section">${familyInputs}<button class="btn-family" onclick="addFamilyMember(${i})">+ إضافة فرد</button></div>
+    <label>الأشهر المدفوعة (اضغط للتحديد):</label>${monthsHtml}
+    <button class="btn-report" onclick="shareReport(${i})">📱 إرسال كشف حساب</button>
+    <button class="btn-del" onclick="deleteM(${i})">حذف</button>`;
 }
 container.appendChild(card);
 }
@@ -400,7 +397,7 @@ container.appendChild(card);
 if(isAdmin) {
 const b = document.createElement('button');
 b.className = 'btn-add'; b.innerText = '+ إضافة رب عائلة جديد';
-b.onclick = () => { membersData.push({name:'اسم جديد', phone:'', amount:0, paid:false, family:[], payMonths:[]}); db.ref('members').set(membersData); };
+b.onclick = () => { membersData.push({name:'اسم جديد', phone:'', family:[], payMonths:[]}); db.ref('members').set(membersData); };
 container.appendChild(b);
 }
 }
