@@ -293,26 +293,37 @@ db.ref('financials_v2/expenses').set(currentExp);
 
 function deleteExpense(idx) { if(confirm("حذف؟")) { financials.expenses.splice(idx, 1); db.ref('financials_v2/expenses').set(financials.expenses); } }
 
-// رسالة الشكر مع العبارة الجديدة "لخدمة صندوق الفاتحة"
+// وظيفة إرسال الشكر المحدثة حسب الطلب
 function sendThanks(memberIdx) {
     const m = membersData[memberIdx];
     const finalBalance = document.getElementById('finalBalance').innerText;
+    const totalInFamily = 1 + (m.family ? m.family.length : 0);
+    const amountPerMonth = totalInFamily * 2000;
+
     let paidList = [];
+    let unpaidList = [];
+    
     monthsNames.forEach(month => {
-        if(m.monthsStates && m.monthsStates[month] === 1) paidList.push(month);
+        const state = (m.monthsStates && m.monthsStates[month]) ? m.monthsStates[month] : 0;
+        if(state === 1) paidList.push(month);
+        if(state === 2) unpaidList.push(month);
     });
     
-    if(paidList.length === 0) { alert("لا توجد أشهر مسددة لإرسال شكر عليها!"); return; }
+    if(paidList.length === 0) { alert("لا توجد أشهر مدفوعة حالياً!"); return; }
 
-    const lastPaidMonth = paidList[paidList.length - 1];
-    
     let message = `*شكر وتقدير من صندوق الفاتحة* 🌸%0A%0A` +
                   `الأخ العزيز: *${m.name}*%0A` +
-                  `تم تسجيل اشتراك شهر *(${lastPaidMonth})* بنجاح.%0A%0A` +
-                  `*الشفافية والأثر:*%0A` +
-                  `بفضل مساهمتكم ومساهمة الإخوة، وصل رصيد الصندوق الحالي إلى *(${finalBalance})*.%0A` +
-                  `هذا الدعم يعزز قدرتنا على الوقوف مع أبناء العشيرة في كافة الظروف.%0A%0A` +
-                  `*شكراً لالتزامكم.. يداً بيد لخدمة صندوق الفاتحة.* 🙏`;
+                  `تم *دفع* اشتراك الأشهر التالية بنجاح: *(${paidList.join("، ")})*%0A%0A`;
+    
+    if(unpaidList.length > 0) {
+        message += `⚠️ *تنويه بخصوص الأشهر المتبقية:*%0A` +
+                   `يرجى ملاحظة أن الأشهر التالية غير مدفوعة: *(${unpaidList.join("، ")})*%0A` +
+                   `إجمالي المبلغ المطلوب لها هو: *(${(unpaidList.length * amountPerMonth).toLocaleString()} د.ع)*.%0A%0A`;
+    }
+
+    message += `*الشفافية والأثر:*%0A` +
+               `بفضل مساهمتكم ومساهمة الإخوة، وصل رصيد الصندوق الحالي إلى *(${finalBalance})*.%0A%0A` +
+               `*شكراً لالتزامكم.. يداً بيد لخدمة صندوق الفاتحة.* 🙏`;
     
     const phoneList = Array.isArray(m.phones) ? m.phones : (m.phone ? [m.phone] : []);
     if(phoneList.length === 0) { alert("لا يوجد رقم هاتف!"); return; }
@@ -342,7 +353,7 @@ function shareReport(memberIdx) {
                   `*صندوق الفاتحة*%0A%0A` +
                   `الأخ الفاضل: *${m.name}*%0A` +
                   `عدد أفراد العائلة: ${totalInFamily}%0A%0A` +
-                  `*✅ الأشهر المسددة:* ${paidList.length > 0 ? paidList.join("، ") : "لا يوجد"}%0A%0A` +
+                  `*✅ الأشهر المدفوعة:* ${paidList.length > 0 ? paidList.join("، ") : "لا يوجد"}%0A%0A` +
                   `*❌ الأشهر المطلوبة:* ${unpaidList.length > 0 ? unpaidList.join("، ") : "لا يوجد - مسدد بالكامل"}%0A` +
                   `*💵 إجمالي المبلغ المطلوب:* ${(unpaidList.length * amountPerMonth).toLocaleString()} د.ع%0A%0A` +
                   `_شكراً لتعاونكم.. يداً بيد لخدمة صندوق الفاتحة._`;
@@ -400,7 +411,7 @@ if(!isAdmin) {
     </div>
     <small>نسبة الالتزام السنوي: ${Math.round(progressPercent)}%</small>
     <hr>
-    <p><b>المدفوع:</b> ${paidList.join(" - ") || "لا يوجد"}</p>
+    <p><b>المدفوعة:</b> ${paidList.join(" - ") || "لا يوجد"}</p>
     <p><b>الحالة:</b> ${statusDisplay}</p>`;
 } else {
     let familyInputs = '';
@@ -422,7 +433,7 @@ if(!isAdmin) {
     <div class="family-section">${familyInputs}<button class="btn-family" onclick="addFamilyMember(${i})">+ إضافة فرد</button></div>
     <label>حالة الأشهر:</label>${monthsHtml}
     <button class="btn-report" onclick="shareReport(${i})">📱 إرسال تقرير الدفع</button>
-    ${hasPaid ? `<button class="btn-thanks" onclick="sendThanks(${i})">🌸 إرسال رسالة شكر (شفافة)</button>` : ''}
+    ${hasPaid ? `<button class="btn-thanks" onclick="sendThanks(${i})">🌸 إرسال رسالة شكر ودفع</button>` : ''}
     <button class="btn-del" onclick="deleteM(${i})">حذف</button>`;
 }
 container.appendChild(card);
