@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8" />
-<title>إدارة صندوق العشيرة المتطور</title>
+<title>إدارة صندوق الفاتحة المتطور</title>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 <style>
@@ -90,7 +90,9 @@ cursor: pointer;
 .family-head-name { font-size: 1.6em; font-weight: 900; color: #2c3e50; margin-bottom: 8px; display: block; }
 
 .family-section { margin-top: 10px; padding: 10px; background: rgba(0,0,0,0.03); border-radius: 8px; }
-.family-title { font-size: 0.9em; font-weight: bold; color: #7f8c8d; margin-bottom: 5px; display: block; }
+.family-title { font-size: 1em; font-weight: bold; color: #2c3e50; margin-bottom: 5px; display: block; text-decoration: underline; }
+.family-names-display { font-size: 1.1em; font-weight: bold; color: #333; line-height: 1.6; display: block; }
+
 .family-input-container { display: flex; align-items: center; gap: 5px; margin-bottom: 5px; }
 .family-input { flex: 1; padding: 5px; border: 1px solid #ccc; border-radius: 4px; font-size: 0.85em; }
 
@@ -339,7 +341,7 @@ function shareReport(memberIdx) {
     let statusHeader = unpaidList.length > 0 ? "*تنبيه بوجود مبالغ مستحقة* ⚠️" : "*تقرير حالة الصندوق* ✅";
     
     let message = `${statusHeader}%0A` +
-                  `*عشيرة ال جهل*%0A%0A` +
+                  `*صندوق الفاتحة*%0A%0A` +
                   `الأخ الفاضل: *${m.name}*%0A` +
                   `عدد أفراد العائلة: ${totalInFamily}%0A` +
                   `رسم الشخص الواحد: 2,000 د.ع%0A%0A` +
@@ -381,13 +383,21 @@ if(headNameMatch || familyNamesMatch) {
     card.className = `member-card ${cardColorClass} ${isAdmin ? 'admin-mode-card' : ''}`;
 
 if(!isAdmin) {
+    // تعديل الأسماء هنا لتكون عريضة وأكبر (bold & font-size 1.1em)
     let familyNames = m.family ? m.family.filter(n => n).join(" - ") : "لا يوجد أفراد";
-    // تعديل عرض الحالة للمشاهد ليظهر التفاصيل المطلوبة
     let statusDisplay = hasUnpaid 
         ? `<b style="color:red">⚠️ مطلوب مبلغ شهر (${unpaidList.join(" و ")}) والمبلغ هو (${unpaidAmount.toLocaleString()} د.ع)</b>` 
         : `<b style="color:green">✅ مسدد بالكامل</b>`;
 
-    card.innerHTML = `<span class="family-head-name">${m.name}</span><p>👪 الأفراد: ${totalInFamily}</p><div class="family-section"><span class="family-title">الأسماء:</span><small>${familyNames}</small></div><hr><p><b>المدفوع:</b> ${paidList.join(" - ") || "لا يوجد"}</p><p><b>الحالة:</b> ${statusDisplay}</p>`;
+    card.innerHTML = `<span class="family-head-name">${m.name}</span>
+    <p>👪 عدد أفراد العائلة: ${totalInFamily}</p>
+    <div class="family-section">
+        <span class="family-title">الأسماء:</span>
+        <span class="family-names-display">${familyNames}</span>
+    </div>
+    <hr>
+    <p><b>المدفوع:</b> ${paidList.join(" - ") || "لا يوجد"}</p>
+    <p><b>الحالة:</b> ${statusDisplay}</p>`;
 } else {
     let familyInputs = '';
     if(m.family) { m.family.forEach((fName, fIdx) => { familyInputs += `<div class="family-input-container"><input class="family-input" value="${fName}" onchange="updateFamily(${i}, ${fIdx}, this.value)"><span style="cursor:pointer" onclick="deleteFamilyMember(${i}, ${fIdx})">❌</span></div>`; }); }
