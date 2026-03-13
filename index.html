@@ -41,7 +41,6 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-
 
 .header-text h1 { margin: 0; font-size: 1.8em; color: var(--primary-color); font-weight: 900; }
 .header-text h2 { margin: 5px 0; font-size: 1.4em; color: #34495e; }
-.header-text h3 { margin: 0; font-size: 1.2em; color: #d35400; font-weight: bold; }
 
 .sheikh-photo-container { text-align: center; }
 .sheikh-img {
@@ -89,7 +88,6 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-
     border-top: 6px solid #ccc; transition: transform 0.2s;
 }
 
-/* تلوين البطاقة بالكامل بناءً على الحالة */
 .paid-member { background-color: #d4edda !important; border-top-color: var(--success-color) !important; }
 .unpaid-member { background-color: #f8d7da !important; border-top-color: var(--danger-color) !important; }
 
@@ -118,7 +116,6 @@ button { cursor: pointer; border: none; border-radius: 8px; padding: 10px 15px; 
 .btn-add { background: var(--success-color); color: white; padding: 15px 40px; font-size: 1.2em; margin: 20px auto; display: block; }
 .btn-thanks { background: #25d366; color: white; width: 100%; margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; }
 
-/* تنسيق سجل المصروفات */
 .expense-log { font-size: 0.85em; background: rgba(255, 255, 255, 0.7); border: 1px solid rgba(0,0,0,0.1); padding: 8px; margin-top: 5px; border-radius: 6px; text-align: right; color: #333; }
 #expenseDisplay { margin-top: 10px; max-height: 200px; overflow-y: auto; padding: 5px; border-top: 1px dashed #ccc; }
 
@@ -136,7 +133,6 @@ button { cursor: pointer; border: none; border-radius: 8px; padding: 10px 15px; 
     <div class="header-text">
         <h1>صندوق الفاتحة لعام 2026</h1>
         <h2>قبيلة العبودة - عشيرة ال جهل</h2>
-        <h3>إشراف الشيخ العام</h3>
         <label for="bannerUpload" id="bannerLabel" class="upload-btn">🖼️ تغيير صورة الغلاف</label>
         <input type="file" id="bannerUpload" style="display:none;" accept="image/*" onchange="uploadPhoto('bannerPhoto', this)">
     </div>
@@ -162,7 +158,6 @@ button { cursor: pointer; border: none; border-radius: 8px; padding: 10px 15px; 
     </div>
     <div class="stat-item">مقبوضات 2026<span id="monthlyTotal" class="val">0</span></div>
     
-    <!-- خانة المصروفات مفصلة للجميع -->
     <div class="stat-item">إجمالي المصروفات<span id="expenseTotal" class="val" style="color:var(--danger-color)">0</span>
         <div style="font-size: 0.8em; margin-top: 10px; color: #555;">سجل الصرف والتاريخ:</div>
         <div id="expenseDisplay"></div>
@@ -318,7 +313,7 @@ function render() {
                     </div>
                     <div class="progress-container"><div class="progress-bar-fill" style="width:${progress}%"></div></div>
                     <p style="font-size:0.85em;">المدفوع: <span style="color:green; font-weight:bold;">${paidMonths.join('، ') || 'لا يوجد'}</span></p>
-                    ${isUnpaid ? `<p style="font-size:0.85em; color:red; font-weight:bold;">المطلوب بذمته: ${unpaidMonths.join('، ')}<br>المبلغ: ${(unpaidMonths.length * totalInFamily * 2000).toLocaleString()} د.ع</p>` : '<p style="color:green; font-weight:bold;">✅ تم الدفع شكراً لالتزامكم</p>'}
+                    ${isUnpaid ? `<p style="font-size:0.85em; color:red; font-weight:bold;">المبلغ المطلوب حالياً: ${unpaidMonths.join('، ')}<br>المبلغ: ${(unpaidMonths.length * totalInFamily * 2000).toLocaleString()} د.ع</p>` : '<p style="color:green; font-weight:bold;">✅ تم الدفع شكراً لالتزامكم</p>'}
                 `;
             } else {
                 let familyHtml = (m.family || []).map((f, fi) => `<div style="display:flex; gap:5px; margin-bottom:5px;"><input class="edit-input" style="margin:0" value="${f}" onchange="updateFamily(${i},${fi},this.value)"><button onclick="deleteFamily(${i},${fi})" style="background:red; color:white;">×</button></div>`).join('');
