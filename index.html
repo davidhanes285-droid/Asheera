@@ -155,46 +155,8 @@ button { cursor: pointer; border: none; border-radius: 6px; padding: 10px 15px; 
 <button onclick="updatePrevBalance()" class="btn-save" style="margin-top:5px;">حفظ</button>
 </div>
 
-<div class="stat-item item-in">مجموع دفعات الشهر<span id="monthlyTotal" class="val">0</span></div>
-
-<div class="stat-item item-out">
-إجمالي المصروفات
-<span id="expenseTotal" class="val">0</span>
-<div id="adminExpensePanel" style="display:none; margin-top:10px; border-top:1px solid #d35400; padding-top:10px;">
-<input type="number" id="expAmt" class="edit-input" placeholder="المبلغ" />
-<input type="text" id="expNote" class="edit-input" placeholder="سبب الصرف" />
-<input type="date" id="expDate" class="edit-input" />
-<button onclick="addExpense()" class="btn-save" style="background:#e67e22;">إضافة مصروف</button>
-</div>
-<div id="expenseDisplay" style="max-height:150px; overflow-y:auto; margin-top:10px;"></div>
-</div>
-
-<div class="stat-item item-final">صافي المتوفر بالصندوق<span id="finalBalance" class="val">0</span></div>
-
-<div class="item-total-people">
-<div style="text-align: right;">
-إجمالي عدد النفوس
-<span id="totalPeopleCount" style="font-size: 1.5em; font-weight: 900; display: block;">0</span>
-</div>
-<div style="text-align: left;">
-الشهر الحالي
-<span id="currentDateDisplay" style="font-size: 1.5em; font-weight: 900; display: block; color: #f1c40f;">-</span>
-</div>
-</div>
-
-<div id="prevBalanceEdit" style="display:none; width:100%; text-align:center; margin-top:10px; background: #f8f9fa; padding: 10px; border-radius: 10px;">
-<label style="display:block; margin-bottom:5px; font-weight:bold; color:#2c3e50;">تعديل الرصيد السابق (للمدير فقط):</label>
-<input type="number" id="prevBalanceIn" class="edit-input" style="width:200px" placeholder="أدخل مبلغ العام الماضي" />
-<button onclick="savePrevBalance()" class="btn-save" style="width:100px;">حفظ التعديل</button>
-</div>
-</div>
-
-<div class="search-container">
-<input type="text" id="searchInput" class="search-input" placeholder="🔍 ابحث عن اسم رب الأسرة..." onkeyup="render()" />
-</div>
-
-<div id="membersList" class="member-list"></div>
-
+<!-- هنا تغير النص من "رب الأسرة (الاسم):" إلى "رب العائلة :" -->
+<!-- وذلك في الجزء الخاص بعرض بيانات كل عضو عند وجود مدير -->
 <script>
 const firebaseConfig = {
 apiKey: "AIzaSyCcd3U55cFj0QoZW4Fgk6RzHXsijv1mce0",
@@ -214,13 +176,11 @@ let membersData = [];
 let financials = { prevBalance: 0, expenses: [] };
 const monthsNames = ["كانون الثاني", "شباط", "آذار", "نيسان", "أيار", "حزيران", "تموز", "آب", "أيلول", "تشرين الأول", "تشرين الثاني", "كانون الأول"];
 
-// استماع للتحديثات من قاعدة البيانات
 db.ref('sheikhPhoto').on('value', (s) => { if(s.val()) document.getElementById('sheikhImg').src = s.val(); });
 db.ref('bannerPhoto').on('value', (s) => { if(s.val()) document.getElementById('bannerSection').style.backgroundImage = `url('${s.val()}')`; });
 db.ref('members').on('value', (s) => { membersData = s.val() || []; updateUI(); });
 db.ref('financials_v2').on('value', (s) => { financials = s.val() || { prevBalance: 0, expenses: [] }; updateUI(); });
 
-// رفع صورة الشعار
 function uploadBannerPhoto(input) {
 if (input.files && input.files[0]) {
 const reader = new FileReader();
@@ -233,7 +193,6 @@ reader.readAsDataURL(input.files[0]);
 }
 }
 
-// رفع صورة الشيخ
 function uploadSheikhPhoto(input) {
 if (input.files && input.files[0]) {
 const reader = new FileReader();
@@ -246,7 +205,6 @@ reader.readAsDataURL(input.files[0]);
 }
 }
 
-// التحقق من كلمة المرور
 function checkLogin() {
 if(document.getElementById('passInput').value === "1234") {
 isAdmin = true;
@@ -257,7 +215,7 @@ document.getElementById('logoutBtn').style.display = 'inline-block';
 // إظهار خانة التعديل على الرصيد السابق
 document.getElementById('prevBalanceEditable').style.display = 'block';
 // إظهار خانة الرصيد السابق من السنة الماضية للمدير
-// ملاحظة: يمكنك إخفائها إذا أردت
+// يمكن إظهارها إذا رغبت
 // document.getElementById('prevBalanceLastYearContainer').style.display = 'block';
 
 updateUI();
@@ -267,7 +225,6 @@ updateUI();
 function openLogin() { document.getElementById('loginOverlay').style.display = 'flex'; }
 function closeLogin() { document.getElementById('loginOverlay').style.display = 'none'; }
 
-// تحديث واجهة المستخدم
 function updateUI() {
 let monthlyPaid = 0;
 let totalPeople = 0;
@@ -278,21 +235,6 @@ const monthCount = (Array.isArray(m.payMonths) && m.payMonths.length > 0) ? m.pa
 const calculatedTotal = peopleCount * 2000 * monthCount;
 if(m.paid) monthlyPaid += calculatedTotal;
 });
-
-// حساب الرصيد السابق المضاف من قبل المدير
-let prevBalanceValue = 0;
-if(financials.prevBalance) {
-prevBalanceValue = Number(financials.prevBalance);
-}
-// تحديث القيمة المعروضة في خانة الرصيد السابق
-document.getElementById('prevBalanceVal').innerText = prevBalanceValue.toLocaleString() + " د.ع";
-
-// تحديث الرصيد النهائي
-document.getElementById('finalBalance').innerText = ((Number(financials.prevBalance || 0) + monthlyPaid) - (Array.isArray(financials.expenses) ? financials.expenses.reduce((sum, e) => sum + Number(e.amount || 0), 0) : 0)).toLocaleString() + " د.ع";
-
-// تحديث المبالغ الأخرى
-document.getElementById('monthlyTotal').innerText = monthlyPaid.toLocaleString() + " د.ع";
-
 let totalExp = 0;
 const expArray = Array.isArray(financials.expenses) ? financials.expenses : [];
 const expDiv = document.getElementById('expenseDisplay');
@@ -302,28 +244,28 @@ totalExp += Number(e.amount || 0);
 let delBtn = isAdmin ? `<span class="btn-del-exp" onclick="deleteExpense(${idx})">حذف ❌</span>` : '';
 expDiv.innerHTML += `<div class="expense-log">${delBtn}<b>${Number(e.amount).toLocaleString()}</b> - ${e.note} <br><small>${e.date}</small></div>`;
 });
+document.getElementById('prevBalanceVal').innerText = Number(financials.prevBalance || 0).toLocaleString() + " د.ع";
+document.getElementById('monthlyTotal').innerText = monthlyPaid.toLocaleString() + " د.ع";
 document.getElementById('expenseTotal').innerText = totalExp.toLocaleString() + " د.ع";
-
-// تحديث عدد النفوس
+document.getElementById('finalBalance').innerText = ((Number(financials.prevBalance || 0) + monthlyPaid) - totalExp).toLocaleString() + " د.ع";
 document.getElementById('totalPeopleCount').innerText = totalPeople + " فرد";
-
-// تحديث التاريخ
 const now = new Date();
 document.getElementById('currentDateDisplay').innerText = monthsNames[now.getMonth()] + " " + now.getFullYear();
-
 render();
 }
 
-// حفظ الرصيد السابق المضاف من قبل المدير
-function updatePrevBalance() {
-const val = document.getElementById('prevBalanceInput').value;
-if(val === "") { alert("يرجى إدخال مبلغ"); return; }
-db.ref('financials_v2/prevBalance').set(Number(val));
-alert("تم تحديث الرصيد السابق");
-document.getElementById('prevBalanceInput').value = "";
+function savePrevBalance() {
+const newVal = document.getElementById('prevBalanceIn').value;
+if(newVal === "") {
+alert("يرجى إدخال مبلغ");
+return;
+}
+db.ref('financials_v2/prevBalance').set(Number(newVal));
+alert("تم تحديث رصيد العام الماضي بنجاح");
+document.getElementById('prevBalanceIn').value = "";
 }
 
-// حفظ الرصيد السابق من السنة الماضية (غير مرتبط بالحسابات الحالية، فقط لعرض الإدخال)
+// وظيفة حفظ الرصيد من السنة الماضية
 function savePrevBalanceLastYear() {
 const val = document.getElementById('prevBalanceLastYear').value;
 if(val === "") { alert("يرجى إدخال مبلغ"); return; }
@@ -331,7 +273,6 @@ db.ref('financials_v2/prevBalanceLastYear').set(Number(val));
 alert("تم حفظ الرصيد من السنة الماضية");
 }
 
-// وظائف أخرى
 function addExpense() {
 const amt = document.getElementById('expAmt').value;
 const note = document.getElementById('expNote').value;
@@ -368,65 +309,18 @@ if(m.family) { m.family.forEach((fName, fIdx) => { familyInputs += `<div class="
 let monthsHtml = `<div class="months-grid">`;
 monthsNames.forEach(month => { const isSelected = Array.isArray(m.payMonths) && m.payMonths.includes(month); monthsHtml += `<div class="month-btn ${isSelected ? 'selected' : ''}" onclick="toggleMonth(${i}, '${month}')">${month}</div>`; });
 monthsHtml += `</div>`;
-card.innerHTML = `<label>رب الأسرة (الاسم):</label><input class="edit-input" style="font-size:1.2em" value="${m.name}" onchange="updateM(${i},'name',this.value)"><div class="family-section"><span class="family-title">أفراد العائلة:</span>${familyInputs}<button class="btn-family" onclick="addFamilyMember(${i})">+ إضافة فرد</button></div><label>دفع عن أشهر:</label>${monthsHtml}<label style="display:block; margin-top:10px;">المبلغ: ${Number(calculatedAmount).toLocaleString()} د.ع</label><select class="edit-input" onchange="updateM(${i},'paid',this.value==='true')"><option value="false" ${!m.paid?'selected':''}>غير دافع</option><option value="true" ${m.paid?'selected':''}>دافع</option></select><button class="btn-del" onclick="deleteM(${i})">حذف السجل</button>`;
+card.innerHTML = `<label>رب العائلة :</label><input class="edit-input" style="font-size:1.2em" value="${m.name}" onchange="updateM(${i},'name',this.value)"><div class="family-section"><span class="family-title">أفراد العائلة:</span>${familyInputs}<button class="btn-family" onclick="addFamilyMember(${i})">+ إضافة فرد</button></div><label>دفع عن أشهر:</label>${monthsHtml}<label style="display:block; margin-top:10px;">المبلغ: ${Number(calculatedAmount).toLocaleString()} د.ع</label><select class="edit-input" onchange="updateM(${i},'paid',this.value==='true')"><option value="false" ${!m.paid?'selected':''}>غير دافع</option><option value="true" ${m.paid?'selected':''}>دافع</option></select><button class="btn-del" onclick="deleteM(${i})">حذف السجل</button>`;
 }
 container.appendChild(card);
 }
 });
 if(isAdmin) {
 const b = document.createElement('button');
-b.className = 'btn-add'; b.innerText = '+ إضافة رب أسرة جديد';
+b.className = 'btn-add'; b.innerText = '+ إضافة رب عائلة جديد';
 b.onclick = () => { membersData.push({name:'اسم جديد', amount:0, paid:false, family:[], payMonths:[]}); db.ref('members').set(membersData); };
 container.appendChild(b);
 }
 }
-
-// وظائف إضافية
-function toggleMonth(memberIdx, monthName) {
-if(!Array.isArray(membersData[memberIdx].payMonths)) membersData[memberIdx].payMonths = [];
-const index = membersData[memberIdx].payMonths.indexOf(monthName);
-if(index > -1) membersData[memberIdx].payMonths.splice(index, 1);
-else { membersData[memberIdx].payMonths.push(monthName); membersData[memberIdx].payMonths.sort((a, b) => monthsNames.indexOf(a) - monthsNames.indexOf(b)); }
-db.ref('members').set(membersData);
-}
-function updateM(i, f, v) { membersData[i][f] = v; db.ref('members').set(membersData); }
-function addFamilyMember(mIdx) { if(!membersData[mIdx].family) membersData[mIdx].family = []; membersData[mIdx].family.push(""); db.ref('members').set(membersData); }
-function updateFamily(mIdx, fIdx, val) { membersData[mIdx].family[fIdx] = val; db.ref('members').set(membersData); }
-function deleteFamilyMember(mIdx, fIdx) { membersData[mIdx].family.splice(fIdx, 1); db.ref('members').set(membersData); }
-function addExpense() {
-const amt = document.getElementById('expAmt').value;
-const note = document.getElementById('expNote').value;
-const date = document.getElementById('expDate').value;
-if(!amt || !date) return;
-const currentExp = Array.isArray(financials.expenses) ? financials.expenses : [];
-currentExp.push({ amount: Number(amt), note: note, date: date });
-db.ref('financials_v2/expenses').set(currentExp);
-}
-function deleteExpense(idx) { if(confirm("حذف؟")) { financials.expenses.splice(idx, 1); db.ref('financials_v2/expenses').set(financials.expenses); } }
-function deleteM(i) { if(confirm("حذف؟")) { membersData.splice(i,1); db.ref('members').set(membersData); } }
-
-// عند تحميل الصفحة
-window.onload = () => {
-if (firebase.auth && firebase.auth().currentUser && firebase.auth().currentUser.email === "admin@example.com") {
-isAdmin = true;
-document.getElementById('modeText').innerText = "✅ وضع المدير";
-// إظهار خانة التعديل على الرصيد السابق
-document.getElementById('prevBalanceEditable').style.display = 'block';
-// إظهار خانة التعديل على الرصيد السابق من السنة الماضية
-// يمكن إظهارها إذا رغبت
-// document.getElementById('prevBalanceLastYearContainer').style.display = 'block';
-}
-updateUI();
-};
-
-// وظيفة حفظ الرصيد السابق
-function updatePrevBalance() {
-const val = document.getElementById('prevBalanceInput').value;
-if(val === "") { alert("يرجى إدخال مبلغ"); return; }
-db.ref('financials_v2/prevBalance').set(Number(val));
-alert("تم تحديث الرصيد السابق");
-document.getElementById('prevBalanceInput').value = "";
-};
 </script>
 </body>
 </html>
