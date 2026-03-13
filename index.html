@@ -96,14 +96,12 @@ cursor: pointer;
 
 .edit-input { width: 100%; margin-bottom: 10px; padding: 10px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-weight: bold; }
 
-/* تنسيق شبكة الأشهر الجديد */
 .months-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; margin-top: 10px; }
 .month-btn { font-size: 0.75em; padding: 8px 5px; background: #eee; border-radius: 4px; cursor: pointer; text-align: center; border: 1px solid #ddd; transition: 0.2s; font-weight: bold; }
 
-/* الألوان الجديدة للحالات */
-.month-btn.state-0 { background: #eee; color: #777; } /* افتراضي */
-.month-btn.state-1 { background: #27ae60; color: white; border-color: #1e8449; } /* دافع (أخضر) */
-.month-btn.state-2 { background: #e74c3c; color: white; border-color: #c0392b; } /* مطلوب (أحمر) */
+.month-btn.state-0 { background: #eee; color: #777; }
+.month-btn.state-1 { background: #27ae60; color: white; border-color: #1e8449; }
+.month-btn.state-2 { background: #e74c3c; color: white; border-color: #c0392b; }
 
 .expense-log { font-size: 0.8em; text-align: right; background: #fff; border: 1px solid #eee; padding: 8px; margin-top: 5px; border-radius: 5px; position: relative; color: #333; }
 .btn-del-exp { background: #e74c3c; color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; float: left; cursor: pointer; }
@@ -267,7 +265,6 @@ let totalPeople = 0;
 membersData.forEach(m => {
 const peopleCount = 1 + (m.family ? m.family.length : 0);
 totalPeople += peopleCount;
-// حساب الدخل من الأشهر الخضراء فقط (state 1)
 if(m.monthsStates) {
     Object.values(m.monthsStates).forEach(state => {
         if(state === 1) totalIncome += (peopleCount * 2000);
@@ -368,21 +365,29 @@ const headNameMatch = m.name.toLowerCase().includes(search);
 const familyNamesMatch = m.family && m.family.some(fName => fName.toLowerCase().includes(search));
 
 if(headNameMatch || familyNamesMatch) {
-    let hasUnpaid = false;
+    let unpaidList = [];
+    let paidList = [];
     monthsNames.forEach(month => {
-        if(m.monthsStates && m.monthsStates[month] === 2) hasUnpaid = true;
+        if(m.monthsStates && m.monthsStates[month] === 2) unpaidList.push(month);
+        if(m.monthsStates && m.monthsStates[month] === 1) paidList.push(month);
     });
+
+    const totalInFamily = 1 + (m.family ? m.family.length : 0);
+    const unpaidAmount = unpaidList.length * totalInFamily * 2000;
+    const hasUnpaid = unpaidList.length > 0;
 
     const cardColorClass = hasUnpaid ? 'unpaid-member' : 'paid-member';
     const card = document.createElement('div');
     card.className = `member-card ${cardColorClass} ${isAdmin ? 'admin-mode-card' : ''}`;
-    const totalInFamily = 1 + (m.family ? m.family.length : 0);
 
 if(!isAdmin) {
-    let paidList = [];
-    monthsNames.forEach(month => { if(m.monthsStates && m.monthsStates[month] === 1) paidList.push(month); });
     let familyNames = m.family ? m.family.filter(n => n).join(" - ") : "لا يوجد أفراد";
-    card.innerHTML = `<span class="family-head-name">${m.name}</span><p>👪 الأفراد: ${totalInFamily}</p><div class="family-section"><span class="family-title">الأسماء:</span><small>${familyNames}</small></div><hr><p><b>المدفوع:</b> ${paidList.join(" - ") || "لا يوجد"}</p><p><b>الحالة:</b> ${hasUnpaid ? '<b style="color:red">⚠️ مطلوب مبلغ</b>' : '<b style="color:green">✅ مسدد</b>'}</p>`;
+    // تعديل عرض الحالة للمشاهد ليظهر التفاصيل المطلوبة
+    let statusDisplay = hasUnpaid 
+        ? `<b style="color:red">⚠️ مطلوب مبلغ شهر (${unpaidList.join(" و ")}) والمبلغ هو (${unpaidAmount.toLocaleString()} د.ع)</b>` 
+        : `<b style="color:green">✅ مسدد بالكامل</b>`;
+
+    card.innerHTML = `<span class="family-head-name">${m.name}</span><p>👪 الأفراد: ${totalInFamily}</p><div class="family-section"><span class="family-title">الأسماء:</span><small>${familyNames}</small></div><hr><p><b>المدفوع:</b> ${paidList.join(" - ") || "لا يوجد"}</p><p><b>الحالة:</b> ${statusDisplay}</p>`;
 } else {
     let familyInputs = '';
     if(m.family) { m.family.forEach((fName, fIdx) => { familyInputs += `<div class="family-input-container"><input class="family-input" value="${fName}" onchange="updateFamily(${i}, ${fIdx}, this.value)"><span style="cursor:pointer" onclick="deleteFamilyMember(${i}, ${fIdx})">❌</span></div>`; }); }
@@ -398,6 +403,7 @@ if(!isAdmin) {
     <label>الهاتف:</label><input type="text" class="edit-input" placeholder="770..." value="${m.phone || ''}" onchange="updateM(${i},'phone',this.value)">
     <div class="family-section">${familyInputs}<button class="btn-family" onclick="addFamilyMember(${i})">+ إضافة فرد</button></div>
     <label>حالة الأشهر (ضغط=أخضر، ضغطتان=أحمر):</label>${monthsHtml}
+    <p style="margin-top:10px; font-size:0.9em;">${hasUnpaid ? '❌ مطلوب: ' + unpaidAmount.toLocaleString() + ' د.ع' : '✅ لا توجد ديون'}</p>
     <button class="btn-report" onclick="shareReport(${i})">📱 إرسال تقرير الدفع</button>
     <button class="btn-del" onclick="deleteM(${i})">حذف</button>`;
 }
@@ -413,7 +419,6 @@ container.appendChild(b);
 }
 }
 
-// دالة تدوير الحالة: 0 -> 1 (أخضر) -> 2 (أحمر) -> 0
 function cycleMonthState(memberIdx, monthName) {
     if(!membersData[memberIdx].monthsStates) membersData[memberIdx].monthsStates = {};
     let currentState = membersData[memberIdx].monthsStates[monthName] || 0;
