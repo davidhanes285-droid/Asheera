@@ -146,12 +146,13 @@ button { cursor: pointer; border: none; border-radius: 6px; padding: 10px 15px; 
 </div>
 
 <div class="stats-bar">
-<div class="stat-item item-prev">الرصيد السابق (2025)<span id="prevBalanceVal" class="val">0</span></div>
-
-<div class="stat-item item-prev" id="prevBalanceEditable" style="display:none;">
-<label style="display:block; font-weight:bold; margin-bottom:5px;">تعديل الرصيد السابق (للمدير فقط):</label>
-<input type="number" id="prevBalanceInput" class="edit-input" placeholder="أدخل المبلغ" style="width:200px; margin:auto;">
-<button onclick="updatePrevBalance()" class="btn-save" style="margin-top:5px;">حفظ</button>
+<div class="stat-item item-prev">
+    الرصيد السابق (2025)
+    <span id="prevBalanceVal" class="val">0</span>
+    <div id="prevBalanceEditable" style="display:none; margin-top:10px; padding-top:10px; border-top:1px solid #ccc;">
+        <input type="number" id="prevBalanceInput" class="edit-input" placeholder="رصيد السنة السابقة" style="font-size: 0.8em; margin-bottom:5px;">
+        <button onclick="updatePrevBalance()" class="btn-save" style="padding: 5px; font-size: 0.8em;">حفظ المبلغ</button>
+    </div>
 </div>
 
 <div class="stat-item item-in">مجموع دفعات الشهر<span id="monthlyTotal" class="val">0</span></div>
@@ -290,7 +291,7 @@ function updatePrevBalance() {
 const val = document.getElementById('prevBalanceInput').value;
 if(val === "") { alert("يرجى إدخال مبلغ"); return; }
 db.ref('financials_v2/prevBalance').set(Number(val));
-alert("تم تحديث الرصيد السابق");
+alert("تم تحديث الرصيد السابق بنجاح");
 document.getElementById('prevBalanceInput').value = "";
 }
 
