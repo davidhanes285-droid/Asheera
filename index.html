@@ -118,7 +118,6 @@ button { cursor: pointer; border: none; border-radius: 6px; padding: 10px 15px; 
 .btn-family { background: #9b59b6; color: white; font-size: 0.8em; margin-bottom: 10px; width: 100%; }
 .btn-phone { background: #3498db; color: white; font-size: 0.8em; margin-bottom: 10px; width: 100%; }
 
-.btn-report { background: #25d366; color: white; width: 100%; margin-top: 10px; font-size: 0.9em; display: flex; align-items: center; justify-content: center; gap: 8px; }
 .btn-thanks { background: #f1c40f; color: #2c3e50; width: 100%; margin-top: 5px; font-size: 0.85em; display: flex; align-items: center; justify-content: center; gap: 5px; }
 
 .progress-container { width: 100%; background: #eee; height: 10px; border-radius: 5px; margin-top: 10px; overflow: hidden; }
@@ -293,7 +292,6 @@ db.ref('financials_v2/expenses').set(currentExp);
 
 function deleteExpense(idx) { if(confirm("حذف؟")) { financials.expenses.splice(idx, 1); db.ref('financials_v2/expenses').set(financials.expenses); } }
 
-// وظيفة إرسال الشكر المحدثة حسب الطلب
 function sendThanks(memberIdx) {
     const m = membersData[memberIdx];
     const finalBalance = document.getElementById('finalBalance').innerText;
@@ -309,11 +307,14 @@ function sendThanks(memberIdx) {
         if(state === 2) unpaidList.push(month);
     });
     
-    if(paidList.length === 0) { alert("لا توجد أشهر مدفوعة حالياً!"); return; }
+    if(paidList.length === 0 && unpaidList.length === 0) { alert("لا توجد بيانات سداد لإرسالها!"); return; }
 
     let message = `*شكر وتقدير من صندوق الفاتحة* 🌸%0A%0A` +
-                  `الأخ العزيز: *${m.name}*%0A` +
-                  `تم *دفع* اشتراك الأشهر التالية بنجاح: *(${paidList.join("، ")})*%0A%0A`;
+                  `الأخ العزيز: *${m.name}*%0A`;
+    
+    if(paidList.length > 0) {
+        message += `تم *دفع* اشتراك الأشهر التالية بنجاح: *(${paidList.join("، ")})*%0A%0A`;
+    }
     
     if(unpaidList.length > 0) {
         message += `⚠️ *تنويه بخصوص الأشهر المتبقية:*%0A` +
@@ -328,37 +329,6 @@ function sendThanks(memberIdx) {
     const phoneList = Array.isArray(m.phones) ? m.phones : (m.phone ? [m.phone] : []);
     if(phoneList.length === 0) { alert("لا يوجد رقم هاتف!"); return; }
 
-    phoneList.forEach(rawPhone => {
-        if(rawPhone) {
-            let processedPhone = rawPhone.toString().replace(/\s+/g, '');
-            if(processedPhone.startsWith('0')) processedPhone = processedPhone.substring(1);
-            if(!processedPhone.startsWith('964')) processedPhone = '964' + processedPhone;
-            window.open(`https://wa.me/${processedPhone}?text=${message}`, '_blank');
-        }
-    });
-}
-
-function shareReport(memberIdx) {
-    const m = membersData[memberIdx];
-    const totalInFamily = 1 + (m.family ? m.family.length : 0);
-    const amountPerMonth = totalInFamily * 2000;
-    let paidList = []; let unpaidList = [];
-    monthsNames.forEach(month => {
-        const state = (m.monthsStates && m.monthsStates[month]) ? m.monthsStates[month] : 0;
-        if(state === 1) paidList.push(month);
-        if(state === 2) unpaidList.push(month);
-    });
-    let statusHeader = unpaidList.length > 0 ? "*تنبيه بوجود مبالغ مستحقة* ⚠️" : "*تقرير حالة الصندوق* ✅";
-    let message = `${statusHeader}%0A` +
-                  `*صندوق الفاتحة*%0A%0A` +
-                  `الأخ الفاضل: *${m.name}*%0A` +
-                  `عدد أفراد العائلة: ${totalInFamily}%0A%0A` +
-                  `*✅ الأشهر المدفوعة:* ${paidList.length > 0 ? paidList.join("، ") : "لا يوجد"}%0A%0A` +
-                  `*❌ الأشهر المطلوبة:* ${unpaidList.length > 0 ? unpaidList.join("، ") : "لا يوجد - مسدد بالكامل"}%0A` +
-                  `*💵 إجمالي المبلغ المطلوب:* ${(unpaidList.length * amountPerMonth).toLocaleString()} د.ع%0A%0A` +
-                  `_شكراً لتعاونكم.. يداً بيد لخدمة صندوق الفاتحة._`;
-    const phoneList = Array.isArray(m.phones) ? m.phones : (m.phone ? [m.phone] : []);
-    if(phoneList.length === 0) { alert("يرجى إدخال رقم هاتف!"); return; }
     phoneList.forEach(rawPhone => {
         if(rawPhone) {
             let processedPhone = rawPhone.toString().replace(/\s+/g, '');
@@ -432,9 +402,8 @@ if(!isAdmin) {
     <label>أفراد العائلة:</label>
     <div class="family-section">${familyInputs}<button class="btn-family" onclick="addFamilyMember(${i})">+ إضافة فرد</button></div>
     <label>حالة الأشهر:</label>${monthsHtml}
-    <button class="btn-report" onclick="shareReport(${i})">📱 إرسال تقرير الدفع</button>
-    ${hasPaid ? `<button class="btn-thanks" onclick="sendThanks(${i})">🌸 إرسال رسالة شكر ودفع</button>` : ''}
-    <button class="btn-del" onclick="deleteM(${i})">حذف</button>`;
+    <button class="btn-thanks" onclick="sendThanks(${i})">🌸 إرسال رسالة شكر ودفع</button>
+    <button class="btn-del" onclick="deleteM(${i})">حذف العضو</button>`;
 }
 container.appendChild(card);
 }
@@ -454,7 +423,7 @@ function updateM(i, f, v) { membersData[i][f] = v; db.ref('members').set(members
 function addFamilyMember(mIdx) { if(!membersData[mIdx].family) membersData[mIdx].family = []; membersData[mIdx].family.push(""); db.ref('members').set(membersData); }
 function updateFamily(mIdx, fIdx, val) { membersData[mIdx].family[fIdx] = val; db.ref('members').set(membersData); }
 function deleteFamilyMember(mIdx, fIdx) { membersData[mIdx].family.splice(fIdx, 1); db.ref('members').set(membersData); }
-function deleteM(i) { if(confirm("حذف؟")) { membersData.splice(i,1); db.ref('members').set(membersData); } }
+function deleteM(i) { if(confirm("حذف العضو بالكامل؟")) { membersData.splice(i,1); db.ref('members').set(membersData); } }
 function uploadBannerPhoto(input) { if (input.files && input.files[0]) { const reader = new FileReader(); reader.onload = function(e) { db.ref('bannerPhoto').set(e.target.result); }; reader.readAsDataURL(input.files[0]); } }
 function uploadSheikhPhoto(input) { if (input.files && input.files[0]) { const reader = new FileReader(); reader.onload = function(e) { db.ref('sheikhPhoto').set(e.target.result); }; reader.readAsDataURL(input.files[0]); } }
 window.onload = () => { updateUI(); };
