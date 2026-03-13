@@ -148,6 +148,7 @@ button { cursor: pointer; border: none; border-radius: 6px; padding: 10px 15px; 
 <div class="stats-bar">
 <div class="stat-item item-prev">الرصيد السابق (2025)<span id="prevBalanceVal" class="val">0</span></div>
 
+<!-- خانة التعديل على الرصيد السابق للمدير -->
 <div class="stat-item item-prev" id="prevBalanceEditable" style="display:none;">
 <label style="display:block; font-weight:bold; margin-bottom:5px;">تعديل الرصيد السابق (للمدير فقط):</label>
 <input type="number" id="prevBalanceInput" class="edit-input" placeholder="أدخل المبلغ" style="width:200px; margin:auto;">
@@ -180,10 +181,16 @@ button { cursor: pointer; border: none; border-radius: 6px; padding: 10px 15px; 
 <span id="currentDateDisplay" style="font-size: 1.5em; font-weight: 900; display: block; color: #f1c40f;">-</span>
 </div>
 </div>
+
+<div id="prevBalanceEdit" style="display:none; width:100%; text-align:center; margin-top:10px; background: #f8f9fa; padding: 10px; border-radius: 10px;">
+<label style="display:block; margin-bottom:5px; font-weight:bold; color:#2c3e50;">تعديل الرصيد السابق (للمدير فقط):</label>
+<input type="number" id="prevBalanceIn" class="edit-input" style="width:200px" placeholder="أدخل مبلغ العام الماضي" />
+<button onclick="savePrevBalance()" class="btn-save" style="width:100px;">حفظ التعديل</button>
+</div>
 </div>
 
 <div class="search-container">
-<input type="text" id="searchInput" class="search-input" placeholder="🔍 ابحث عن أي اسم (رب الأسرة أو فرد)..." onkeyup="render()" />
+<input type="text" id="searchInput" class="search-input" placeholder="🔍 ابحث عن اسم رب الأسرة..." onkeyup="render()" />
 </div>
 
 <div id="membersList" class="member-list"></div>
@@ -207,33 +214,39 @@ let membersData = [];
 let financials = { prevBalance: 0, expenses: [] };
 const monthsNames = ["كانون الثاني", "شباط", "آذار", "نيسان", "أيار", "حزيران", "تموز", "آب", "أيلول", "تشرين الأول", "تشرين الثاني", "كانون الأول"];
 
+// استماع للتحديثات من قاعدة البيانات
 db.ref('sheikhPhoto').on('value', (s) => { if(s.val()) document.getElementById('sheikhImg').src = s.val(); });
 db.ref('bannerPhoto').on('value', (s) => { if(s.val()) document.getElementById('bannerSection').style.backgroundImage = `url('${s.val()}')`; });
 db.ref('members').on('value', (s) => { membersData = s.val() || []; updateUI(); });
 db.ref('financials_v2').on('value', (s) => { financials = s.val() || { prevBalance: 0, expenses: [] }; updateUI(); });
 
+// رفع صورة الشعار
 function uploadBannerPhoto(input) {
 if (input.files && input.files[0]) {
 const reader = new FileReader();
 reader.onload = function(e) {
 const base64Image = e.target.result;
 db.ref('bannerPhoto').set(base64Image);
+document.getElementById('bannerSection').style.backgroundImage = `url('${base64Image}')`;
 };
 reader.readAsDataURL(input.files[0]);
 }
 }
 
+// رفع صورة الشيخ
 function uploadSheikhPhoto(input) {
 if (input.files && input.files[0]) {
 const reader = new FileReader();
 reader.onload = function(e) {
 const base64Image = e.target.result;
 db.ref('sheikhPhoto').set(base64Image);
+document.getElementById('sheikhImg').src = base64Image;
 };
 reader.readAsDataURL(input.files[0]);
 }
 }
 
+// التحقق من كلمة المرور
 function checkLogin() {
 if(document.getElementById('passInput').value === "1234") {
 isAdmin = true;
@@ -241,10 +254,12 @@ closeLogin();
 document.getElementById('modeText').innerText = "✅ وضع المدير";
 document.getElementById('loginBtn').style.display = 'none';
 document.getElementById('logoutBtn').style.display = 'inline-block';
+// إظهار خانة التعديل على الرصيد السابق
 document.getElementById('prevBalanceEditable').style.display = 'block';
-document.getElementById('uploadLabel').style.display = 'block';
-document.getElementById('bannerLabel').style.display = 'block';
-document.getElementById('adminExpensePanel').style.display = 'block';
+// إظهار خانة الرصيد السابق من السنة الماضية للمدير
+// ملاحظة: يمكنك إخفائها إذا أردت
+// document.getElementById('prevBalanceLastYearContainer').style.display = 'block';
+
 updateUI();
 } else { alert("خطأ في كلمة المرور!"); }
 }
@@ -252,6 +267,7 @@ updateUI();
 function openLogin() { document.getElementById('loginOverlay').style.display = 'flex'; }
 function closeLogin() { document.getElementById('loginOverlay').style.display = 'none'; }
 
+// تحديث واجهة المستخدم
 function updateUI() {
 let monthlyPaid = 0;
 let totalPeople = 0;
@@ -263,8 +279,18 @@ const calculatedTotal = peopleCount * 2000 * monthCount;
 if(m.paid) monthlyPaid += calculatedTotal;
 });
 
-let prevBalanceValue = Number(financials.prevBalance || 0);
+// حساب الرصيد السابق المضاف من قبل المدير
+let prevBalanceValue = 0;
+if(financials.prevBalance) {
+prevBalanceValue = Number(financials.prevBalance);
+}
+// تحديث القيمة المعروضة في خانة الرصيد السابق
 document.getElementById('prevBalanceVal').innerText = prevBalanceValue.toLocaleString() + " د.ع";
+
+// تحديث الرصيد النهائي
+document.getElementById('finalBalance').innerText = ((Number(financials.prevBalance || 0) + monthlyPaid) - (Array.isArray(financials.expenses) ? financials.expenses.reduce((sum, e) => sum + Number(e.amount || 0), 0) : 0)).toLocaleString() + " د.ع";
+
+// تحديث المبالغ الأخرى
 document.getElementById('monthlyTotal').innerText = monthlyPaid.toLocaleString() + " د.ع";
 
 let totalExp = 0;
@@ -277,15 +303,18 @@ let delBtn = isAdmin ? `<span class="btn-del-exp" onclick="deleteExpense(${idx})
 expDiv.innerHTML += `<div class="expense-log">${delBtn}<b>${Number(e.amount).toLocaleString()}</b> - ${e.note} <br><small>${e.date}</small></div>`;
 });
 document.getElementById('expenseTotal').innerText = totalExp.toLocaleString() + " د.ع";
-document.getElementById('finalBalance').innerText = ((prevBalanceValue + monthlyPaid) - totalExp).toLocaleString() + " د.ع";
+
+// تحديث عدد النفوس
 document.getElementById('totalPeopleCount').innerText = totalPeople + " فرد";
 
+// تحديث التاريخ
 const now = new Date();
 document.getElementById('currentDateDisplay').innerText = monthsNames[now.getMonth()] + " " + now.getFullYear();
 
 render();
 }
 
+// حفظ الرصيد السابق المضاف من قبل المدير
 function updatePrevBalance() {
 const val = document.getElementById('prevBalanceInput').value;
 if(val === "") { alert("يرجى إدخال مبلغ"); return; }
@@ -294,6 +323,15 @@ alert("تم تحديث الرصيد السابق");
 document.getElementById('prevBalanceInput').value = "";
 }
 
+// حفظ الرصيد السابق من السنة الماضية (غير مرتبط بالحسابات الحالية، فقط لعرض الإدخال)
+function savePrevBalanceLastYear() {
+const val = document.getElementById('prevBalanceLastYear').value;
+if(val === "") { alert("يرجى إدخال مبلغ"); return; }
+db.ref('financials_v2/prevBalanceLastYear').set(Number(val));
+alert("تم حفظ الرصيد من السنة الماضية");
+}
+
+// وظائف أخرى
 function addExpense() {
 const amt = document.getElementById('expAmt').value;
 const note = document.getElementById('expNote').value;
@@ -303,27 +341,22 @@ const currentExp = Array.isArray(financials.expenses) ? financials.expenses : []
 currentExp.push({ amount: Number(amt), note: note, date: date });
 db.ref('financials_v2/expenses').set(currentExp);
 }
-
 function deleteExpense(idx) { if(confirm("حذف؟")) { financials.expenses.splice(idx, 1); db.ref('financials_v2/expenses').set(financials.expenses); } }
+function deleteM(i) { if(confirm("حذف؟")) { membersData.splice(i,1); db.ref('members').set(membersData); } }
 
-// وظيفة الرندر المعدلة للبحث في كل الخانات
 function render() {
 const container = document.getElementById('membersList');
 const search = document.getElementById('searchInput').value.toLowerCase();
 container.innerHTML = '';
-
 membersData.forEach((m, i) => {
-// فحص هل الاسم موجود في رب الأسرة أو في أي فرد من أفراد العائلة
-const headNameMatch = m.name.toLowerCase().includes(search);
-const familyNamesMatch = m.family && m.family.some(fName => fName.toLowerCase().includes(search));
-
-if(headNameMatch || familyNamesMatch) {
+if(m.name.toLowerCase().includes(search)) {
 const cardColorClass = m.paid ? 'paid-member' : 'unpaid-member';
 const card = document.createElement('div');
 card.className = `member-card ${cardColorClass} ${isAdmin ? 'admin-mode-card' : ''}`;
 const totalInFamily = 1 + (m.family ? m.family.length : 0);
 const monthCount = (Array.isArray(m.payMonths) && m.payMonths.length > 0) ? m.payMonths.length : 0;
 const calculatedAmount = totalInFamily * 2000 * monthCount;
+if(m.amount !== calculatedAmount) { updateM(i, 'amount', calculatedAmount); }
 let monthsDisplay = (monthCount > 0) ? m.payMonths.join(" - ") : "---";
 
 if(!isAdmin) {
@@ -340,7 +373,6 @@ card.innerHTML = `<label>رب الأسرة (الاسم):</label><input class="ed
 container.appendChild(card);
 }
 });
-
 if(isAdmin) {
 const b = document.createElement('button');
 b.className = 'btn-add'; b.innerText = '+ إضافة رب أسرة جديد';
@@ -349,6 +381,7 @@ container.appendChild(b);
 }
 }
 
+// وظائف إضافية
 function toggleMonth(memberIdx, monthName) {
 if(!Array.isArray(membersData[memberIdx].payMonths)) membersData[memberIdx].payMonths = [];
 const index = membersData[memberIdx].payMonths.indexOf(monthName);
@@ -360,9 +393,40 @@ function updateM(i, f, v) { membersData[i][f] = v; db.ref('members').set(members
 function addFamilyMember(mIdx) { if(!membersData[mIdx].family) membersData[mIdx].family = []; membersData[mIdx].family.push(""); db.ref('members').set(membersData); }
 function updateFamily(mIdx, fIdx, val) { membersData[mIdx].family[fIdx] = val; db.ref('members').set(membersData); }
 function deleteFamilyMember(mIdx, fIdx) { membersData[mIdx].family.splice(fIdx, 1); db.ref('members').set(membersData); }
+function addExpense() {
+const amt = document.getElementById('expAmt').value;
+const note = document.getElementById('expNote').value;
+const date = document.getElementById('expDate').value;
+if(!amt || !date) return;
+const currentExp = Array.isArray(financials.expenses) ? financials.expenses : [];
+currentExp.push({ amount: Number(amt), note: note, date: date });
+db.ref('financials_v2/expenses').set(currentExp);
+}
+function deleteExpense(idx) { if(confirm("حذف؟")) { financials.expenses.splice(idx, 1); db.ref('financials_v2/expenses').set(financials.expenses); } }
 function deleteM(i) { if(confirm("حذف؟")) { membersData.splice(i,1); db.ref('members').set(membersData); } }
 
-window.onload = () => { updateUI(); };
+// عند تحميل الصفحة
+window.onload = () => {
+if (firebase.auth && firebase.auth().currentUser && firebase.auth().currentUser.email === "admin@example.com") {
+isAdmin = true;
+document.getElementById('modeText').innerText = "✅ وضع المدير";
+// إظهار خانة التعديل على الرصيد السابق
+document.getElementById('prevBalanceEditable').style.display = 'block';
+// إظهار خانة التعديل على الرصيد السابق من السنة الماضية
+// يمكن إظهارها إذا رغبت
+// document.getElementById('prevBalanceLastYearContainer').style.display = 'block';
+}
+updateUI();
+};
+
+// وظيفة حفظ الرصيد السابق
+function updatePrevBalance() {
+const val = document.getElementById('prevBalanceInput').value;
+if(val === "") { alert("يرجى إدخال مبلغ"); return; }
+db.ref('financials_v2/prevBalance').set(Number(val));
+alert("تم تحديث الرصيد السابق");
+document.getElementById('prevBalanceInput').value = "";
+};
 </script>
 </body>
 </html>
