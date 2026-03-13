@@ -116,6 +116,7 @@ button { cursor: pointer; border: none; border-radius: 6px; padding: 10px 15px; 
 .btn-save { background: #3498db; color: white; width: 100%; }
 .btn-del { background: #c0392b; color: white; width: 100%; margin-top: 10px; }
 .btn-family { background: #9b59b6; color: white; font-size: 0.8em; margin-bottom: 10px; width: 100%; }
+.btn-phone { background: #3498db; color: white; font-size: 0.8em; margin-bottom: 10px; width: 100%; }
 
 .btn-report { background: #25d366; color: white; width: 100%; margin-top: 10px; font-size: 0.9em; display: flex; align-items: center; justify-content: center; gap: 8px; }
 .btn-report:hover { background: #128c7e; }
@@ -330,14 +331,6 @@ function shareReport(memberIdx) {
         if(state === 2) unpaidList.push(month);
     });
 
-    let rawPhone = m.phone ? m.phone.toString().replace(/\s+/g, '') : "";
-    let finalPhone = "";
-    if(rawPhone) {
-        if(rawPhone.startsWith('0')) rawPhone = rawPhone.substring(1);
-        if(!rawPhone.startsWith('964')) finalPhone = '964' + rawPhone;
-        else finalPhone = rawPhone;
-    }
-
     let statusHeader = unpaidList.length > 0 ? "*تنبيه بوجود مبالغ مستحقة* ⚠️" : "*تقرير حالة الصندوق* ✅";
     
     let message = `${statusHeader}%0A` +
@@ -350,11 +343,22 @@ function shareReport(memberIdx) {
                   `*💵 إجمالي المبلغ المطلوب:* ${(unpaidList.length * amountPerMonth).toLocaleString()} د.ع%0A%0A` +
                   `_نشكر تعاونكم لخدمة العشيرة._`;
     
-    if(finalPhone) {
-        window.open(`https://wa.me/${finalPhone}?text=${message}`, '_blank');
-    } else {
-        alert("يرجى إدخال رقم الهاتف");
+    // التعامل مع أرقام الهواتف المتعددة
+    const phoneList = Array.isArray(m.phones) ? m.phones : (m.phone ? [m.phone] : []);
+    
+    if(phoneList.length === 0) {
+        alert("يرجى إدخال رقم هاتف واحد على الأقل");
+        return;
     }
+
+    phoneList.forEach(rawPhone => {
+        if(rawPhone) {
+            let processedPhone = rawPhone.toString().replace(/\s+/g, '');
+            if(processedPhone.startsWith('0')) processedPhone = processedPhone.substring(1);
+            if(!processedPhone.startsWith('964')) processedPhone = '964' + processedPhone;
+            window.open(`https://wa.me/${processedPhone}?text=${message}`, '_blank');
+        }
+    });
 }
 
 function render() {
@@ -383,7 +387,6 @@ if(headNameMatch || familyNamesMatch) {
     card.className = `member-card ${cardColorClass} ${isAdmin ? 'admin-mode-card' : ''}`;
 
 if(!isAdmin) {
-    // تعديل الأسماء هنا لتكون عريضة وأكبر (bold & font-size 1.1em)
     let familyNames = m.family ? m.family.filter(n => n).join(" - ") : "لا يوجد أفراد";
     let statusDisplay = hasUnpaid 
         ? `<b style="color:red">⚠️ مطلوب مبلغ شهر (${unpaidList.join(" و ")}) والمبلغ هو (${unpaidAmount.toLocaleString()} د.ع)</b>` 
@@ -399,9 +402,17 @@ if(!isAdmin) {
     <p><b>المدفوع:</b> ${paidList.join(" - ") || "لا يوجد"}</p>
     <p><b>الحالة:</b> ${statusDisplay}</p>`;
 } else {
+    // عرض مدخلات أفراد العائلة
     let familyInputs = '';
     if(m.family) { m.family.forEach((fName, fIdx) => { familyInputs += `<div class="family-input-container"><input class="family-input" value="${fName}" onchange="updateFamily(${i}, ${fIdx}, this.value)"><span style="cursor:pointer" onclick="deleteFamilyMember(${i}, ${fIdx})">❌</span></div>`; }); }
     
+    // عرض مدخلات أرقام الهواتف (الجديد)
+    let phoneInputs = '';
+    const phones = Array.isArray(m.phones) ? m.phones : (m.phone ? [m.phone] : [""]);
+    phones.forEach((pNum, pIdx) => {
+        phoneInputs += `<div class="family-input-container"><input class="family-input" placeholder="077..." value="${pNum}" onchange="updatePhone(${i}, ${pIdx}, this.value)"><span style="cursor:pointer" onclick="deletePhone(${i}, ${pIdx})">❌</span></div>`;
+    });
+
     let monthsHtml = `<div class="months-grid">`;
     monthsNames.forEach(month => {
         const state = (m.monthsStates && m.monthsStates[month]) ? m.monthsStates[month] : 0;
@@ -410,9 +421,11 @@ if(!isAdmin) {
     monthsHtml += `</div>`;
     
     card.innerHTML = `<label>الاسم:</label><input class="edit-input" value="${m.name}" onchange="updateM(${i},'name',this.value)">
-    <label>الهاتف:</label><input type="text" class="edit-input" placeholder="770..." value="${m.phone || ''}" onchange="updateM(${i},'phone',this.value)">
+    <label>أرقام الهاتف:</label>
+    <div class="family-section" style="background: rgba(52, 152, 219, 0.1);">${phoneInputs}<button class="btn-phone" onclick="addPhoneField(${i})">+ إضافة رقم هاتف</button></div>
+    <label>أفراد العائلة:</label>
     <div class="family-section">${familyInputs}<button class="btn-family" onclick="addFamilyMember(${i})">+ إضافة فرد</button></div>
-    <label>حالة الأشهر (ضغط=أخضر، ضغطتان=أحمر):</label>${monthsHtml}
+    <label>حالة الأشهر:</label>${monthsHtml}
     <p style="margin-top:10px; font-size:0.9em;">${hasUnpaid ? '❌ مطلوب: ' + unpaidAmount.toLocaleString() + ' د.ع' : '✅ لا توجد ديون'}</p>
     <button class="btn-report" onclick="shareReport(${i})">📱 إرسال تقرير الدفع</button>
     <button class="btn-del" onclick="deleteM(${i})">حذف</button>`;
@@ -424,9 +437,27 @@ container.appendChild(card);
 if(isAdmin) {
 const b = document.createElement('button');
 b.className = 'btn-add'; b.innerText = '+ إضافة رب عائلة جديد';
-b.onclick = () => { membersData.push({name:'اسم جديد', phone:'', family:[], monthsStates:{} }); db.ref('members').set(membersData); };
+b.onclick = () => { membersData.push({name:'اسم جديد', phones:[''], family:[], monthsStates:{} }); db.ref('members').set(membersData); };
 container.appendChild(b);
 }
+}
+
+// وظائف التعامل مع أرقام الهواتف
+function addPhoneField(mIdx) { 
+    if(!membersData[mIdx].phones) {
+        membersData[mIdx].phones = membersData[mIdx].phone ? [membersData[mIdx].phone] : [];
+    }
+    membersData[mIdx].phones.push(""); 
+    db.ref('members').set(membersData); 
+}
+function updatePhone(mIdx, pIdx, val) { 
+    if(!membersData[mIdx].phones) membersData[mIdx].phones = [];
+    membersData[mIdx].phones[pIdx] = val; 
+    db.ref('members').set(membersData); 
+}
+function deletePhone(mIdx, pIdx) { 
+    membersData[mIdx].phones.splice(pIdx, 1); 
+    db.ref('members').set(membersData); 
 }
 
 function cycleMonthState(memberIdx, monthName) {
