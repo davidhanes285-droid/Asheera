@@ -67,7 +67,7 @@ cursor: pointer;
 .stats-bar { background: #ffffff; padding: 20px; display: flex; justify-content: space-around; gap: 15px; border-bottom: 3px solid #3498db; flex-wrap: wrap; }
 .stat-item { text-align: center; flex: 1; min-width: 180px; padding: 15px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); font-weight: bold; color: #2c3e50; border: 1px solid #ddd; }
 
-.val { font-size: 1.5em; font-weight: 900; display: block; margin-top: 8px; }
+.val { font-size: 1.5em; font-weight: 900; display: block; }
 
 .item-prev { background-color: #ecf0f1; border-bottom: 5px solid #95a5a6; }
 .item-in { background-color: #dff9fb; border-bottom: 5px solid #27ae60; color: #27ae60; }
@@ -128,7 +128,7 @@ button { cursor: pointer; border: none; border-radius: 6px; padding: 10px 15px; 
 
 <div class="header-section" id="bannerSection">
 <div class="header-text">
-<h1>صندوق الفاتحة لعام 2026</h1>
+<h1>صندوق الفاتحة لعام <span id="currentYear">2026</span></h1>
 <h2>قبيلة العبودة</h2>
 <h3>عشيرة ال جهل</h3>
 <label for="bannerUpload" id="bannerLabel" class="upload-btn">🖼️ تغيير شعار الصندوق</label>
@@ -158,7 +158,7 @@ button { cursor: pointer; border: none; border-radius: 6px; padding: 10px 15px; 
 
 <div class="stats-bar">
 <div class="stat-item item-prev">
-    الرصيد السابق (2025)
+    الرصيد السابق (<span id="prevYear">2025</span>)
     <span id="prevBalanceVal" class="val">0</span>
     <div id="prevBalanceEditable" style="display:none; margin-top:10px; padding-top:10px; border-top:1px solid #ccc;">
         <input type="number" id="prevBalanceInput" class="edit-input" placeholder="رصيد السنة السابقة" style="font-size: 0.8em; margin-bottom:5px;">
@@ -218,6 +218,14 @@ let isAdmin = false;
 let membersData = [];
 let financials = { prevBalance: 0, expenses: [] };
 const monthsNames = ["كانون الثاني", "شباط", "آذار", "نيسان", "أيار", "حزيران", "تموز", "آب", "أيلول", "تشرين الأول", "تشرين الثاني", "كانون الأول"];
+let currentYear = new Date().getFullYear(); // السنة الحالية
+
+function updateYear(year) {
+    currentYear = year;
+    document.getElementById('currentYear').innerText = currentYear;
+    document.getElementById('prevYear').innerText = currentYear - 1;
+    updateUI();
+}
 
 db.ref('sheikhPhoto').on('value', (s) => { if(s.val()) document.getElementById('sheikhImg').src = s.val(); });
 db.ref('bannerPhoto').on('value', (s) => { if(s.val()) document.getElementById('bannerSection').style.backgroundImage = `url('${s.val()}')`; });
@@ -269,7 +277,7 @@ document.getElementById('expenseTotal').innerText = totalExp.toLocaleString() + 
 document.getElementById('finalBalance').innerText = ((prevBalanceValue + totalIncome) - totalExp).toLocaleString() + " د.ع";
 document.getElementById('totalPeopleCount').innerText = totalPeople + " فرد";
 const now = new Date();
-document.getElementById('currentDateDisplay').innerText = monthsNames[now.getMonth()] + " " + now.getFullYear();
+document.getElementById('currentDateDisplay').innerText = monthsNames[now.getMonth()] + " " + currentYear;
 render();
 }
 
@@ -297,7 +305,6 @@ function sendThanks(memberIdx) {
     const finalBalance = document.getElementById('finalBalance').innerText;
     const totalInFamily = 1 + (m.family ? m.family.length : 0);
     const amountPerMonth = totalInFamily * 2000;
-    const currentYear = new Date().getFullYear(); // جلب السنة الحالية تلقائياً
 
     let paidList = [];
     let unpaidList = [];
