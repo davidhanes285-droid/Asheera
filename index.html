@@ -38,6 +38,7 @@ z-index: 2;
 }
 .header-text h1 { margin: 0; font-size: 1.8em; font-weight: 900; }
 .header-text h2 { margin: 0; font-size: 1.5em; color: #34495e; }
+/* عبارة عشيرة ال جهل باللون الأسود الداكن */
 .header-text h3 { margin: 0; font-size: 1.3em; color: #000000; font-weight: bold; }
 
 .sheikh-photo-container { text-align: center; z-index: 2; }
@@ -317,7 +318,23 @@ function shareReport(memberIdx) {
     const amount = totalInFamily * 2000 * monthCount;
     const months = (monthCount > 0) ? m.payMonths.join("، ") : "لا يوجد دفعات مسجلة";
     const status = m.paid ? "✅ تم الدفع بنجاح" : "❌ بانتظار الدفع";
-    const phone = m.phone ? m.phone.replace(/\s+/g, '') : "";
+    
+    // معالجة رقم الهاتف لإضافة كود العراق تلقائياً
+    let rawPhone = m.phone ? m.phone.toString().replace(/\s+/g, '') : "";
+    let finalPhone = "";
+    
+    if(rawPhone) {
+        // إذا بدأ الرقم بصفر، نحذفه
+        if(rawPhone.startsWith('0')) {
+            rawPhone = rawPhone.substring(1);
+        }
+        // إذا لم يكن كود العراق موجوداً، نضيفه
+        if(!rawPhone.startsWith('964')) {
+            finalPhone = '964' + rawPhone;
+        } else {
+            finalPhone = rawPhone;
+        }
+    }
 
     const message = `*تقرير صندوق الفاتحة لعام 2026*%0A` +
                     `*عشيرة ال جهل*%0A%0A` +
@@ -328,10 +345,10 @@ function shareReport(memberIdx) {
                     `*الحالة:* ${status}%0A%0A` +
                     `_ملاحظة: هذا تقرير آلي لتذكيركم بمدفوعاتكم في الصندوق._`;
     
-    if(phone) {
-        window.open(`https://wa.me/${phone}?text=${message}`, '_blank');
+    if(finalPhone) {
+        window.open(`https://wa.me/${finalPhone}?text=${message}`, '_blank');
     } else {
-        window.open(`https://wa.me/?text=${message}`, '_blank');
+        alert("يرجى إدخال رقم الهاتف أولاً");
     }
 }
 
@@ -363,7 +380,7 @@ let monthsHtml = `<div class="months-grid">`;
 monthsNames.forEach(month => { const isSelected = Array.isArray(m.payMonths) && m.payMonths.includes(month); monthsHtml += `<div class="month-btn ${isSelected ? 'selected' : ''}" onclick="toggleMonth(${i}, '${month}')">${month}</div>`; });
 monthsHtml += `</div>`;
 card.innerHTML = `<label>رب العائلة (الاسم):</label><input class="edit-input" style="font-size:1.2em" value="${m.name}" onchange="updateM(${i},'name',this.value)">
-<label>رقم الهاتف (واتساب):</label><input class="edit-input" placeholder="مثال: 9647700000000" value="${m.phone || ''}" onchange="updateM(${i},'phone',this.value)">
+<label>رقم الهاتف (بدون كود الدولة):</label><input type="text" class="edit-input" placeholder="7700000000" value="${m.phone || ''}" onchange="updateM(${i},'phone',this.value)">
 <div class="family-section"><span class="family-title">أفراد العائلة:</span>${familyInputs}<button class="btn-family" onclick="addFamilyMember(${i})">+ إضافة فرد</button></div><label>دفع عن أشهر:</label>${monthsHtml}<label style="display:block; margin-top:10px;">المبلغ: ${Number(calculatedAmount).toLocaleString()} د.ع</label><select class="edit-input" onchange="updateM(${i},'paid',this.value==='true')"><option value="false" ${!m.paid?'selected':''}>غير دافع</option><option value="true" ${m.paid?'selected':''}>دافع</option></select>
 <button class="btn-report" onclick="shareReport(${i})">📱 إرسال تقرير (واتساب)</button>
 <button class="btn-del" onclick="deleteM(${i})">حذف السجل</button>`;
