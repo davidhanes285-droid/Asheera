@@ -96,9 +96,14 @@ cursor: pointer;
 
 .edit-input { width: 100%; margin-bottom: 10px; padding: 10px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-weight: bold; }
 
+/* تنسيق شبكة الأشهر الجديد */
 .months-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; margin-top: 10px; }
-.month-btn { font-size: 0.75em; padding: 5px; background: #eee; border-radius: 4px; cursor: pointer; text-align: center; border: 1px solid #ddd; }
-.month-btn.selected { background: #8e44ad; color: white; border-color: #7d3c98; }
+.month-btn { font-size: 0.75em; padding: 8px 5px; background: #eee; border-radius: 4px; cursor: pointer; text-align: center; border: 1px solid #ddd; transition: 0.2s; font-weight: bold; }
+
+/* الألوان الجديدة للحالات */
+.month-btn.state-0 { background: #eee; color: #777; } /* افتراضي */
+.month-btn.state-1 { background: #27ae60; color: white; border-color: #1e8449; } /* دافع (أخضر) */
+.month-btn.state-2 { background: #e74c3c; color: white; border-color: #c0392b; } /* مطلوب (أحمر) */
 
 .expense-log { font-size: 0.8em; text-align: right; background: #fff; border: 1px solid #eee; padding: 8px; margin-top: 5px; border-radius: 5px; position: relative; color: #333; }
 .btn-del-exp { background: #e74c3c; color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; float: left; cursor: pointer; }
@@ -158,7 +163,7 @@ button { cursor: pointer; border: none; border-radius: 6px; padding: 10px 15px; 
     </div>
 </div>
 
-<div class="stat-item item-in">مجموع دفعات الصندوق<span id="monthlyTotal" class="val">0</span></div>
+<div class="stat-item item-in">مجموع مقبوضات الصندوق<span id="monthlyTotal" class="val">0</span></div>
 
 <div class="stat-item item-out">
 إجمالي المصروفات
@@ -262,8 +267,12 @@ let totalPeople = 0;
 membersData.forEach(m => {
 const peopleCount = 1 + (m.family ? m.family.length : 0);
 totalPeople += peopleCount;
-const paidCount = (Array.isArray(m.payMonths)) ? m.payMonths.length : 0;
-totalIncome += (peopleCount * 2000 * paidCount);
+// حساب الدخل من الأشهر الخضراء فقط (state 1)
+if(m.monthsStates) {
+    Object.values(m.monthsStates).forEach(state => {
+        if(state === 1) totalIncome += (peopleCount * 2000);
+    });
+}
 });
 
 let prevBalanceValue = Number(financials.prevBalance || 0);
@@ -291,7 +300,7 @@ render();
 
 function updatePrevBalance() {
 const val = document.getElementById('prevBalanceInput').value;
-if(val === "") { alert("يرجى إدخل مبلغ"); return; }
+if(val === "") { alert("يرجى إدخال مبلغ"); return; }
 db.ref('financials_v2/prevBalance').set(Number(val));
 document.getElementById('prevBalanceInput').value = "";
 }
@@ -313,20 +322,15 @@ function shareReport(memberIdx) {
     const totalInFamily = 1 + (m.family ? m.family.length : 0);
     const amountPerMonth = totalInFamily * 2000;
     
-    // جرد الأشهر
-    const paidMonths = Array.isArray(m.payMonths) ? m.payMonths : [];
-    const currentMonthIdx = new Date().getMonth();
+    let paidList = [];
+    let unpaidList = [];
     
-    let unpaidMonthsList = [];
-    for(let i=0; i <= currentMonthIdx; i++) {
-        if(!paidMonths.includes(monthsNames[i])) {
-            unpaidMonthsList.push(monthsNames[i]);
-        }
-    }
+    monthsNames.forEach(month => {
+        const state = (m.monthsStates && m.monthsStates[month]) ? m.monthsStates[month] : 0;
+        if(state === 1) paidList.push(month);
+        if(state === 2) unpaidList.push(month);
+    });
 
-    const totalPaidAmount = paidMonths.length * amountPerMonth;
-    const totalUnpaidAmount = unpaidMonthsList.length * amountPerMonth;
-    
     let rawPhone = m.phone ? m.phone.toString().replace(/\s+/g, '') : "";
     let finalPhone = "";
     if(rawPhone) {
@@ -335,17 +339,17 @@ function shareReport(memberIdx) {
         else finalPhone = rawPhone;
     }
 
-    let statusHeader = unpaidMonthsList.length === 0 ? "*شكراً لالتزامكم* ✅" : "*تذكير بالمساهمة* 🔔";
+    let statusHeader = unpaidList.length > 0 ? "*تنبيه بوجود مبالغ مستحقة* ⚠️" : "*تقرير حالة الصندوق* ✅";
     
     let message = `${statusHeader}%0A` +
                   `*عشيرة ال جهل*%0A%0A` +
                   `الأخ الفاضل: *${m.name}*%0A` +
-                  `عدد أفراد العائلة: ${totalInFamily}%0A%0A` +
-                  `*✅ الأشهر المدفوعة:* ${paidMonths.length > 0 ? paidMonths.join("، ") : "لا يوجد"}%0A` +
-                  `*💰 إجمالي ما تم دفعه:* ${totalPaidAmount.toLocaleString()} د.ع%0A%0A` +
-                  `*⚠️ الأشهر المستحقة:* ${unpaidMonthsList.length > 0 ? unpaidMonthsList.join("، ") : "لا يوجد - ملتزم"}%0A` +
-                  `*💵 مبلغ الدين المتبقي:* ${totalUnpaidAmount.toLocaleString()} د.ع%0A%0A` +
-                  `_ملاحظة: مبلغ الفرد الواحد شهرياً هو 2,000 د.ع._`;
+                  `عدد أفراد العائلة: ${totalInFamily}%0A` +
+                  `رسم الشخص الواحد: 2,000 د.ع%0A%0A` +
+                  `*✅ الأشهر المسددة:* ${paidList.length > 0 ? paidList.join("، ") : "لا يوجد"}%0A%0A` +
+                  `*❌ الأشهر المطلوبة:* ${unpaidList.length > 0 ? unpaidList.join("، ") : "لا يوجد - مسدد بالكامل"}%0A` +
+                  `*💵 إجمالي المبلغ المطلوب:* ${(unpaidList.length * amountPerMonth).toLocaleString()} د.ع%0A%0A` +
+                  `_نشكر تعاونكم لخدمة العشيرة._`;
     
     if(finalPhone) {
         window.open(`https://wa.me/${finalPhone}?text=${message}`, '_blank');
@@ -364,30 +368,37 @@ const headNameMatch = m.name.toLowerCase().includes(search);
 const familyNamesMatch = m.family && m.family.some(fName => fName.toLowerCase().includes(search));
 
 if(headNameMatch || familyNamesMatch) {
-    const paidMonths = Array.isArray(m.payMonths) ? m.payMonths : [];
-    const currentMonthIdx = new Date().getMonth();
-    let isDelayed = false;
-    for(let x=0; x <= currentMonthIdx; x++) { if(!paidMonths.includes(monthsNames[x])) isDelayed = true; }
+    let hasUnpaid = false;
+    monthsNames.forEach(month => {
+        if(m.monthsStates && m.monthsStates[month] === 2) hasUnpaid = true;
+    });
 
-    const cardColorClass = isDelayed ? 'unpaid-member' : 'paid-member';
+    const cardColorClass = hasUnpaid ? 'unpaid-member' : 'paid-member';
     const card = document.createElement('div');
     card.className = `member-card ${cardColorClass} ${isAdmin ? 'admin-mode-card' : ''}`;
     const totalInFamily = 1 + (m.family ? m.family.length : 0);
 
 if(!isAdmin) {
+    let paidList = [];
+    monthsNames.forEach(month => { if(m.monthsStates && m.monthsStates[month] === 1) paidList.push(month); });
     let familyNames = m.family ? m.family.filter(n => n).join(" - ") : "لا يوجد أفراد";
-    card.innerHTML = `<span class="family-head-name">${m.name}</span><p>👪 الأفراد: ${totalInFamily}</p><div class="family-section"><span class="family-title">الأسماء:</span><small>${familyNames}</small></div><hr><p><b>المدفوع:</b> ${paidMonths.join(" - ") || "لا يوجد"}</p><p><b>الحالة:</b> ${isDelayed ? '<b style="color:red">⚠️ يوجد متبقي</b>' : '<b style="color:green">✅ مسدد بالكامل</b>'}</p>`;
+    card.innerHTML = `<span class="family-head-name">${m.name}</span><p>👪 الأفراد: ${totalInFamily}</p><div class="family-section"><span class="family-title">الأسماء:</span><small>${familyNames}</small></div><hr><p><b>المدفوع:</b> ${paidList.join(" - ") || "لا يوجد"}</p><p><b>الحالة:</b> ${hasUnpaid ? '<b style="color:red">⚠️ مطلوب مبلغ</b>' : '<b style="color:green">✅ مسدد</b>'}</p>`;
 } else {
     let familyInputs = '';
     if(m.family) { m.family.forEach((fName, fIdx) => { familyInputs += `<div class="family-input-container"><input class="family-input" value="${fName}" onchange="updateFamily(${i}, ${fIdx}, this.value)"><span style="cursor:pointer" onclick="deleteFamilyMember(${i}, ${fIdx})">❌</span></div>`; }); }
+    
     let monthsHtml = `<div class="months-grid">`;
-    monthsNames.forEach(month => { const isSelected = paidMonths.includes(month); monthsHtml += `<div class="month-btn ${isSelected ? 'selected' : ''}" onclick="toggleMonth(${i}, '${month}')">${month}</div>`; });
+    monthsNames.forEach(month => {
+        const state = (m.monthsStates && m.monthsStates[month]) ? m.monthsStates[month] : 0;
+        monthsHtml += `<div class="month-btn state-${state}" onclick="cycleMonthState(${i}, '${month}')">${month}</div>`;
+    });
     monthsHtml += `</div>`;
+    
     card.innerHTML = `<label>الاسم:</label><input class="edit-input" value="${m.name}" onchange="updateM(${i},'name',this.value)">
     <label>الهاتف:</label><input type="text" class="edit-input" placeholder="770..." value="${m.phone || ''}" onchange="updateM(${i},'phone',this.value)">
     <div class="family-section">${familyInputs}<button class="btn-family" onclick="addFamilyMember(${i})">+ إضافة فرد</button></div>
-    <label>الأشهر المدفوعة (اضغط للتحديد):</label>${monthsHtml}
-    <button class="btn-report" onclick="shareReport(${i})">📱 إرسال كشف حساب</button>
+    <label>حالة الأشهر (ضغط=أخضر، ضغطتان=أحمر):</label>${monthsHtml}
+    <button class="btn-report" onclick="shareReport(${i})">📱 إرسال تقرير الدفع</button>
     <button class="btn-del" onclick="deleteM(${i})">حذف</button>`;
 }
 container.appendChild(card);
@@ -397,18 +408,20 @@ container.appendChild(card);
 if(isAdmin) {
 const b = document.createElement('button');
 b.className = 'btn-add'; b.innerText = '+ إضافة رب عائلة جديد';
-b.onclick = () => { membersData.push({name:'اسم جديد', phone:'', family:[], payMonths:[]}); db.ref('members').set(membersData); };
+b.onclick = () => { membersData.push({name:'اسم جديد', phone:'', family:[], monthsStates:{} }); db.ref('members').set(membersData); };
 container.appendChild(b);
 }
 }
 
-function toggleMonth(memberIdx, monthName) {
-if(!Array.isArray(membersData[memberIdx].payMonths)) membersData[memberIdx].payMonths = [];
-const index = membersData[memberIdx].payMonths.indexOf(monthName);
-if(index > -1) membersData[memberIdx].payMonths.splice(index, 1);
-else { membersData[memberIdx].payMonths.push(monthName); membersData[memberIdx].payMonths.sort((a, b) => monthsNames.indexOf(a) - monthsNames.indexOf(b)); }
-db.ref('members').set(membersData);
+// دالة تدوير الحالة: 0 -> 1 (أخضر) -> 2 (أحمر) -> 0
+function cycleMonthState(memberIdx, monthName) {
+    if(!membersData[memberIdx].monthsStates) membersData[memberIdx].monthsStates = {};
+    let currentState = membersData[memberIdx].monthsStates[monthName] || 0;
+    let nextState = (currentState + 1) % 3;
+    membersData[memberIdx].monthsStates[monthName] = nextState;
+    db.ref('members').set(membersData);
 }
+
 function updateM(i, f, v) { membersData[i][f] = v; db.ref('members').set(membersData); }
 function addFamilyMember(mIdx) { if(!membersData[mIdx].family) membersData[mIdx].family = []; membersData[mIdx].family.push(""); db.ref('members').set(membersData); }
 function updateFamily(mIdx, fIdx, val) { membersData[mIdx].family[fIdx] = val; db.ref('members').set(membersData); }
