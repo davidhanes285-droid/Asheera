@@ -292,12 +292,12 @@ db.ref('financials_v2/expenses').set(currentExp);
 
 function deleteExpense(idx) { if(confirm("حذف؟")) { financials.expenses.splice(idx, 1); db.ref('financials_v2/expenses').set(financials.expenses); } }
 
-// وظيفة إرسال الرسالة بصياغة مختصرة وواضحة جداً
 function sendThanks(memberIdx) {
     const m = membersData[memberIdx];
     const finalBalance = document.getElementById('finalBalance').innerText;
     const totalInFamily = 1 + (m.family ? m.family.length : 0);
     const amountPerMonth = totalInFamily * 2000;
+    const currentYear = new Date().getFullYear(); // جلب السنة الحالية تلقائياً
 
     let paidList = [];
     let unpaidList = [];
@@ -310,16 +310,15 @@ function sendThanks(memberIdx) {
     
     if(paidList.length === 0 && unpaidList.length === 0) { alert("لا توجد بيانات سداد!"); return; }
 
-    // الصياغة المختصرة والجديدة
     let message = `*صندوق الفاتحة*%0A%0A` +
                   `الأخ العزيز: *${m.name}*%0A`;
     
     if(paidList.length > 0) {
-        message += `تم بحمد الله *دفع* اشتراك الأشهر: *(${paidList.join("، ")})*%0A%0A`;
+        message += `تم بحمد الله *دفع* اشتراك أشهر سنة ${currentYear}: *(${paidList.join("، ")})*%0A%0A`;
     }
     
     if(unpaidList.length > 0) {
-        message += `*متبقي بذمتكم الأشهر التالية:*%0A` +
+        message += `*متبقي بذمتكم الأشهر التالية لسنة ${currentYear}:*%0A` +
                    `الأشهر: (${unpaidList.join("، ")})%0A` +
                    `المبلغ المطلوب: *(${(unpaidList.length * amountPerMonth).toLocaleString()} د.ع)*%0A%0A`;
     }
