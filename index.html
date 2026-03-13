@@ -2,73 +2,28 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8" />
-<title>إدارة صندوق الفاتحة المتطور</title>
+<title>إدارة صندوق الفاتحة - النظام الاحترافي</title>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 <style>
 body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; margin: 0; padding: 0; }
-
-.header-section {
-position: relative;
-background: #ffffff;
-padding: 40px 60px;
-display: flex;
-justify-content: space-between;
-align-items: center;
-border-bottom: 2px solid #2c3e50;
-background-size: cover;
-background-position: center;
-overflow: hidden;
-z-index: 1;
-}
-
-.header-section::before {
-content: "";
-position: absolute;
-top: 0; left: 0; right: 0; bottom: 0;
-background: rgba(255, 255, 255, 0.7);
-z-index: -1;
-}
-
-.header-text {
-text-align: right;
-color: #2c3e50;
-line-height: 1.4;
-z-index: 2;
-}
+.header-section { position: relative; background: #ffffff; padding: 40px 60px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #2c3e50; background-size: cover; background-position: center; overflow: hidden; z-index: 1; }
+.header-section::before { content: ""; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255, 255, 255, 0.7); z-index: -1; }
+.header-text { text-align: right; color: #2c3e50; line-height: 1.4; z-index: 2; }
 .header-text h1 { margin: 0; font-size: 1.8em; font-weight: 900; }
 .header-text h2 { margin: 0; font-size: 1.5em; color: #34495e; }
 .header-text h3 { margin: 0; font-size: 1.3em; color: #000000; font-weight: bold; }
-
 .sheikh-photo-container { text-align: center; z-index: 2; }
-.sheikh-img {
-width: 120px;
-height: 120px;
-border-radius: 15px;
-object-fit: cover;
-border: 3px solid #2c3e50;
-background: #eee;
-display: block;
-}
+.sheikh-img { width: 120px; height: 120px; border-radius: 15px; object-fit: cover; border: 3px solid #2c3e50; background: #eee; display: block; }
+.upload-btn { display: none; margin-top: 5px; font-size: 11px; background: #34495e; color: white; padding: 5px; border-radius: 5px; cursor: pointer; }
+.admin-bar { background: #2c3e50; color: white; padding: 15px; text-align: center; position: sticky; top: 0; z-index: 1000; display: flex; justify-content: center; align-items: center; gap: 20px; flex-wrap: wrap; }
 
-.upload-btn {
-display: none;
-margin-top: 5px;
-font-size: 11px;
-background: #34495e;
-color: white;
-padding: 5px;
-border-radius: 5px;
-cursor: pointer;
-}
-
-.admin-bar { background: #2c3e50; color: white; padding: 15px; text-align: center; position: sticky; top: 0; z-index: 1000; }
+.year-selector-container { background: #f1c40f; padding: 5px 15px; border-radius: 8px; color: #2c3e50; font-weight: bold; display: flex; align-items: center; gap: 10px; }
+.year-select { padding: 5px; border-radius: 5px; border: none; font-weight: bold; cursor: pointer; }
 
 .stats-bar { background: #ffffff; padding: 20px; display: flex; justify-content: space-around; gap: 15px; border-bottom: 3px solid #3498db; flex-wrap: wrap; }
 .stat-item { text-align: center; flex: 1; min-width: 180px; padding: 15px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); font-weight: bold; color: #2c3e50; border: 1px solid #ddd; }
-
 .val { font-size: 1.5em; font-weight: 900; display: block; margin-top: 8px; }
-
 .item-prev { background-color: #ecf0f1; border-bottom: 5px solid #95a5a6; }
 .item-in { background-color: #dff9fb; border-bottom: 5px solid #27ae60; color: #27ae60; }
 .item-out { background-color: #ffeaa7; border-bottom: 5px solid #e67e22; color: #d35400; }
@@ -76,36 +31,28 @@ cursor: pointer;
 .item-final .val { color: #f1c40f; }
 
 .item-total-people { background-color: #8e44ad; border-bottom: 5px solid #dcdde1; color: #ffffff; margin-top: 10px; width: 100%; flex: none; display: flex; justify-content: space-between; align-items: center; padding: 15px 30px; box-sizing: border-box; }
-
 .search-container { background: #fff; padding: 15px; text-align: center; }
 .search-input { width: 80%; max-width: 500px; padding: 12px; border: 2px solid #3498db; border-radius: 30px; outline: none; text-align: center; font-size: 1em; }
 
 .member-list { display: flex; flex-wrap: wrap; gap: 20px; padding: 20px; justify-content: center; }
-
 .member-card { background: white; border-radius: 15px; padding: 20px; width: 320px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); border-top: 5px solid #3498db; transition: 0.3s; position: relative; }
-.paid-member { background-color: #e8f8f5 !important; border-top: 5px solid #27ae60 !important; }
-.unpaid-member { background-color: #fdedec !important; border-top: 5px solid #e74c3c !important; }
+.paid-member { border-top: 5px solid #27ae60 !important; }
+.unpaid-member { border-top: 5px solid #e74c3c !important; }
 
-.admin-mode-card { border-top: 5px solid #e67e22; }
 .family-head-name { font-size: 1.6em; font-weight: 900; color: #2c3e50; margin-bottom: 8px; display: block; }
-
 .family-section { margin-top: 10px; padding: 10px; background: rgba(0,0,0,0.03); border-radius: 8px; }
-.family-title { font-size: 1em; font-weight: bold; color: #2c3e50; margin-bottom: 5px; display: block; text-decoration: underline; }
+.family-title { font-size: 1em; font-weight: bold; text-decoration: underline; }
 .family-names-display { font-size: 1.1em; font-weight: bold; color: #333; line-height: 1.6; display: block; }
-
 .family-input-container { display: flex; align-items: center; gap: 5px; margin-bottom: 5px; }
 .family-input { flex: 1; padding: 5px; border: 1px solid #ccc; border-radius: 4px; font-size: 0.85em; }
-
 .edit-input { width: 100%; margin-bottom: 10px; padding: 10px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-weight: bold; }
 
 .months-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; margin-top: 10px; }
-.month-btn { font-size: 0.75em; padding: 8px 5px; background: #eee; border-radius: 4px; cursor: pointer; text-align: center; border: 1px solid #ddd; transition: 0.2s; font-weight: bold; }
-
-.month-btn.state-0 { background: #eee; color: #777; }
+.month-btn { font-size: 0.75em; padding: 8px 5px; background: #eee; border-radius: 4px; cursor: pointer; text-align: center; border: 1px solid #ddd; font-weight: bold; }
 .month-btn.state-1 { background: #27ae60; color: white; border-color: #1e8449; }
 .month-btn.state-2 { background: #e74c3c; color: white; border-color: #c0392b; }
 
-.expense-log { font-size: 0.8em; text-align: right; background: #fff; border: 1px solid #eee; padding: 8px; margin-top: 5px; border-radius: 5px; position: relative; color: #333; }
+.expense-log { font-size: 0.8em; text-align: right; background: #fff; border: 1px solid #eee; padding: 8px; margin-top: 5px; border-radius: 5px; color: #333; }
 .btn-del-exp { background: #e74c3c; color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; float: left; cursor: pointer; }
 
 #loginOverlay { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; justify-content:center; align-items:center; }
@@ -115,11 +62,7 @@ button { cursor: pointer; border: none; border-radius: 6px; padding: 10px 15px; 
 .btn-add { background: #27ae60; color: white; width: 280px; font-size: 1.1em; margin: 20px; }
 .btn-save { background: #3498db; color: white; width: 100%; }
 .btn-del { background: #c0392b; color: white; width: 100%; margin-top: 10px; }
-.btn-family { background: #9b59b6; color: white; font-size: 0.8em; margin-bottom: 10px; width: 100%; }
-.btn-phone { background: #3498db; color: white; font-size: 0.8em; margin-bottom: 10px; width: 100%; }
-
-.btn-thanks { background: #f1c40f; color: #2c3e50; width: 100%; margin-top: 5px; font-size: 0.85em; display: flex; align-items: center; justify-content: center; gap: 5px; }
-
+.btn-thanks { background: #f1c40f; color: #2c3e50; width: 100%; margin-top: 5px; font-size: 0.85em; }
 .progress-container { width: 100%; background: #eee; height: 10px; border-radius: 5px; margin-top: 10px; overflow: hidden; }
 .progress-bar-fill { background: #27ae60; height: 100%; transition: 0.5s; }
 </style>
@@ -128,305 +71,190 @@ button { cursor: pointer; border: none; border-radius: 6px; padding: 10px 15px; 
 
 <div class="header-section" id="bannerSection">
 <div class="header-text">
-<h1>صندوق الفاتحة لعام 2026</h1>
+<h1 id="headerYearTitle">صندوق الفاتحة لعام 2026</h1>
 <h2>قبيلة العبودة</h2>
 <h3>عشيرة ال جهل</h3>
-<label for="bannerUpload" id="bannerLabel" class="upload-btn">🖼️ تغيير شعار الصندوق</label>
-<input type="file" id="bannerUpload" style="display:none;" accept="image/*" onchange="uploadBannerPhoto(this)">
+<label for="bannerUpload" id="bannerLabel" class="upload-btn">🖼️ تغيير الشعار</label>
+<input type="file" id="bannerUpload" style="display:none;" accept="image/*" onchange="uploadPhoto('bannerPhoto', this)">
 </div>
 <div class="sheikh-photo-container">
 <img id="sheikhImg" src="https://via.placeholder.com/120?text=صورة+الشيخ" class="sheikh-img" />
 <label for="sheikhUpload" id="uploadLabel" class="upload-btn">📷 تغيير صورة الشيخ</label>
-<input type="file" id="sheikhUpload" style="display:none;" accept="image/*" onchange="uploadSheikhPhoto(this)">
-</div>
-</div>
-
-<div id="loginOverlay">
-<div class="login-box">
-<h2 style="margin-bottom:20px;">دخول لوحة التحكم</h2>
-<input type="password" id="passInput" class="edit-input" placeholder="كلمة المرور" style="text-align:center;" />
-<button onclick="checkLogin()" class="btn-save" style="margin-bottom:10px;">دخول</button>
-<button onclick="closeLogin()" style="background:#95a5a6; color:white; width:100%;">إلغاء</button>
+<input type="file" id="sheikhUpload" style="display:none;" accept="image/*" onchange="uploadPhoto('sheikhPhoto', this)">
 </div>
 </div>
 
 <div class="admin-bar">
+<div class="year-selector-container">
+    <span>السنة المالية:</span>
+    <select id="selectedYear" class="year-select" onchange="changeYear()">
+        <option value="2026">2026</option>
+        <option value="2027">2027</option>
+        <option value="2028">2028</option>
+    </select>
+</div>
 <span id="modeText">📱 وضع المشاهدة</span>
-<button id="loginBtn" onclick="openLogin()" style="background:#3498db; color:white; margin-right:15px;">دخول المدير 🔐</button>
+<button id="loginBtn" onclick="openLogin()" style="background:#3498db; color:white;">دخول المدير 🔐</button>
 <button id="logoutBtn" onclick="location.reload()" style="display:none; background:#95a5a6; color:white;">خروج 🚪</button>
 </div>
 
 <div class="stats-bar">
-<div class="stat-item item-prev">
-    الرصيد السابق (2025)
-    <span id="prevBalanceVal" class="val">0</span>
-    <div id="prevBalanceEditable" style="display:none; margin-top:10px; padding-top:10px; border-top:1px solid #ccc;">
-        <input type="number" id="prevBalanceInput" class="edit-input" placeholder="رصيد السنة السابقة" style="font-size: 0.8em; margin-bottom:5px;">
-        <button onclick="updatePrevBalance()" class="btn-save" style="padding: 5px; font-size: 0.8em;">حفظ المبلغ</button>
-    </div>
+<div class="stat-item item-prev">الرصيد المدور من السنة السابقة<span id="prevBalanceVal" class="val">0</span>
+<div id="prevBalanceEdit" style="display:none;"><input type="number" id="prevInput" class="edit-input"><button onclick="savePrev()">حفظ</button></div></div>
+<div class="stat-item item-in">مقبوضات السنة<span id="monthlyTotal" class="val">0</span></div>
+<div class="stat-item item-out">مصروفات السنة<span id="expenseTotal" class="val">0</span>
+<div id="expPanel" style="display:none;"><input type="number" id="eAmt" class="edit-input" placeholder="المبلغ"><input type="text" id="eNote" class="edit-input" placeholder="السبب"><button onclick="addExp()">إضافة</button></div>
+<div id="expList" style="max-height:100px; overflow:auto;"></div></div>
+<div class="stat-item item-final">صافي المتوفر حالياً<span id="finalBalance" class="val">0</span></div>
 </div>
 
-<div class="stat-item item-in">مجموع مقبوضات الصندوق<span id="monthlyTotal" class="val">0</span></div>
-
-<div class="stat-item item-out">
-إجمالي المصروفات
-<span id="expenseTotal" class="val">0</span>
-<div id="adminExpensePanel" style="display:none; margin-top:10px; border-top:1px solid #d35400; padding-top:10px;">
-<input type="number" id="expAmt" class="edit-input" placeholder="المبلغ" />
-<input type="text" id="expNote" class="edit-input" placeholder="سبب الصرف" />
-<input type="date" id="expDate" class="edit-input" />
-<button onclick="addExpense()" class="btn-save" style="background:#e67e22;">إضافة مصروف</button>
-</div>
-<div id="expenseDisplay" style="max-height:150px; overflow-y:auto; margin-top:10px;"></div>
-</div>
-
-<div class="stat-item item-final">صافي المتوفر بالصندوق<span id="finalBalance" class="val">0</span></div>
-
-<div class="item-total-people">
-<div style="text-align: right;">
-عدد افراد المشتركين في صندوق الفاتحة
-<span id="totalPeopleCount" style="font-size: 1.5em; font-weight: 900; display: block;">0</span>
-</div>
-<div style="text-align: left;">
-الشهر الحالي
-<span id="currentDateDisplay" style="font-size: 1.5em; font-weight: 900; display: block; color: #f1c40f;">-</span>
-</div>
-</div>
-</div>
-
-<div class="search-container">
-<input type="text" id="searchInput" class="search-input" placeholder="🔍 ابحث عن أي اسم (رب العائلة أو فرد)..." onkeyup="render()" />
-</div>
-
+<div class="search-container"><input type="text" id="searchInput" class="search-input" placeholder="🔍 ابحث عن اسم..." onkeyup="render()"></div>
 <div id="membersList" class="member-list"></div>
+
+<div id="loginOverlay"><div class="login-box"><h2>كلمة المرور</h2><input type="password" id="passInput" class="edit-input"><button onclick="checkLogin()" class="btn-save">دخول</button></div></div>
 
 <script>
 const firebaseConfig = {
-apiKey: "AIzaSyCcd3U55cFj0QoZW4Fgk6RzHXsijv1mce0",
-authDomain: "asheera-e3178.firebaseapp.com",
-databaseURL: "https://asheera-e3178-default-rtdb.firebaseio.com",
-projectId: "asheera-e3178",
-storageBucket: "asheera-e3178.firebasestorage.app",
-messagingSenderId: "863501168077",
-appId: "1:863501168077:web:7539e176fa4f82140ee884"
+    apiKey: "AIzaSyCcd3U55cFj0QoZW4Fgk6RzHXsijv1mce0",
+    authDomain: "asheera-e3178.firebaseapp.com",
+    databaseURL: "https://asheera-e3178-default-rtdb.firebaseio.com",
+    projectId: "asheera-e3178",
+    storageBucket: "asheera-e3178.firebasestorage.app",
+    messagingSenderId: "863501168077",
+    appId: "1:863501168077:web:7539e176fa4f82140ee884"
 };
 
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
-
-let isAdmin = false;
-let membersData = [];
-let financials = { prevBalance: 0, expenses: [] };
+let isAdmin = false, membersData = [], financials = {}, currentYear = "2026";
 const monthsNames = ["كانون الثاني", "شباط", "آذار", "نيسان", "أيار", "حزيران", "تموز", "آب", "أيلول", "تشرين الأول", "تشرين الثاني", "كانون الأول"];
 
-db.ref('sheikhPhoto').on('value', (s) => { if(s.val()) document.getElementById('sheikhImg').src = s.val(); });
-db.ref('bannerPhoto').on('value', (s) => { if(s.val()) document.getElementById('bannerSection').style.backgroundImage = `url('${s.val()}')`; });
-db.ref('members').on('value', (s) => { membersData = s.val() || []; updateUI(); });
-db.ref('financials_v2').on('value', (s) => { financials = s.val() || { prevBalance: 0, expenses: [] }; updateUI(); });
-
-function checkLogin() {
-if(document.getElementById('passInput').value === "1234") {
-isAdmin = true; closeLogin();
-document.getElementById('modeText').innerText = "✅ وضع المدير";
-document.getElementById('loginBtn').style.display = 'none';
-document.getElementById('logoutBtn').style.display = 'inline-block';
-document.getElementById('prevBalanceEditable').style.display = 'block';
-document.getElementById('uploadLabel').style.display = 'block';
-document.getElementById('bannerLabel').style.display = 'block';
-document.getElementById('adminExpensePanel').style.display = 'block';
-updateUI();
-} else { alert("خطأ في كلمة المرور!"); }
+function attach() {
+    db.ref('sheikhPhoto').on('value', s => { if(s.val()) document.getElementById('sheikhImg').src = s.val(); });
+    db.ref('bannerPhoto').on('value', s => { if(s.val()) document.getElementById('bannerSection').style.backgroundImage = `url('${s.val()}')`; });
+    db.ref('members_base').on('value', s => { membersData = s.val() || []; update(); });
+    db.ref('data_by_year/' + currentYear).on('value', s => { financials = s.val() || {prevBalance:0, expenses:[], payments:{}}; update(); });
 }
 
-function openLogin() { document.getElementById('loginOverlay').style.display = 'flex'; }
-function closeLogin() { document.getElementById('loginOverlay').style.display = 'none'; }
-
-function updateUI() {
-let totalIncome = 0; let totalPeople = 0;
-membersData.forEach(m => {
-const peopleCount = 1 + (m.family ? m.family.length : 0);
-totalPeople += peopleCount;
-if(m.monthsStates) {
-    Object.values(m.monthsStates).forEach(state => {
-        if(state === 1) totalIncome += (peopleCount * 2000);
-    });
-}
-});
-let prevBalanceValue = Number(financials.prevBalance || 0);
-document.getElementById('prevBalanceVal').innerText = prevBalanceValue.toLocaleString() + " د.ع";
-document.getElementById('monthlyTotal').innerText = totalIncome.toLocaleString() + " د.ع";
-
-let totalExp = 0;
-const expArray = Array.isArray(financials.expenses) ? financials.expenses : [];
-const expDiv = document.getElementById('expenseDisplay');
-expDiv.innerHTML = '';
-expArray.forEach((e, idx) => {
-totalExp += Number(e.amount || 0);
-let delBtn = isAdmin ? `<span class="btn-del-exp" onclick="deleteExpense(${idx})">حذف ❌</span>` : '';
-expDiv.innerHTML += `<div class="expense-log">${delBtn}<b>${Number(e.amount).toLocaleString()}</b> - ${e.note} <br><small>${e.date}</small></div>`;
-});
-document.getElementById('expenseTotal').innerText = totalExp.toLocaleString() + " د.ع";
-document.getElementById('finalBalance').innerText = ((prevBalanceValue + totalIncome) - totalExp).toLocaleString() + " د.ع";
-document.getElementById('totalPeopleCount').innerText = totalPeople + " فرد";
-const now = new Date();
-document.getElementById('currentDateDisplay').innerText = monthsNames[now.getMonth()] + " " + now.getFullYear();
-render();
-}
-
-function updatePrevBalance() {
-const val = document.getElementById('prevBalanceInput').value;
-if(val === "") { alert("يرجى إدخال مبلغ"); return; }
-db.ref('financials_v2/prevBalance').set(Number(val));
-document.getElementById('prevBalanceInput').value = "";
-}
-
-function addExpense() {
-const amt = document.getElementById('expAmt').value;
-const note = document.getElementById('expNote').value;
-const date = document.getElementById('expDate').value;
-if(!amt || !date) return;
-const currentExp = Array.isArray(financials.expenses) ? financials.expenses : [];
-currentExp.push({ amount: Number(amt), note: note, date: date });
-db.ref('financials_v2/expenses').set(currentExp);
-}
-
-function deleteExpense(idx) { if(confirm("حذف؟")) { financials.expenses.splice(idx, 1); db.ref('financials_v2/expenses').set(financials.expenses); } }
-
-function sendThanks(memberIdx) {
-    const m = membersData[memberIdx];
-    const finalBalance = document.getElementById('finalBalance').innerText;
-    const totalInFamily = 1 + (m.family ? m.family.length : 0);
-    const amountPerMonth = totalInFamily * 2000;
-    const currentYear = new Date().getFullYear(); // جلب السنة الحالية تلقائياً
-
-    let paidList = [];
-    let unpaidList = [];
+async function changeYear() {
+    const oldYear = currentYear;
+    currentYear = document.getElementById('selectedYear').value;
+    document.getElementById('headerYearTitle').innerText = "صندوق الفاتحة لعام " + currentYear;
     
-    monthsNames.forEach(month => {
-        const state = (m.monthsStates && m.monthsStates[month]) ? m.monthsStates[month] : 0;
-        if(state === 1) paidList.push(month);
-        if(state === 2) unpaidList.push(month);
-    });
-    
-    if(paidList.length === 0 && unpaidList.length === 0) { alert("لا توجد بيانات سداد!"); return; }
-
-    let message = `*صندوق الفاتحة*%0A%0A` +
-                  `الأخ العزيز: *${m.name}*%0A`;
-    
-    if(paidList.length > 0) {
-        message += `تم بحمد الله *دفع* اشتراك أشهر سنة ${currentYear}: *(${paidList.join("، ")})*%0A%0A`;
-    }
-    
-    if(unpaidList.length > 0) {
-        message += `*متبقي بذمتكم الأشهر التالية لسنة ${currentYear}:*%0A` +
-                   `الأشهر: (${unpaidList.join("، ")})%0A` +
-                   `المبلغ المطلوب: *(${(unpaidList.length * amountPerMonth).toLocaleString()} د.ع)*%0A%0A`;
-    }
-
-    message += `رصيد الصندوق الكلي: *(${finalBalance})*%0A` +
-               `شكراً لالتزامكم.. يداً بيد لخدمة صندوق الفاتحة.`;
-    
-    const phoneList = Array.isArray(m.phones) ? m.phones : (m.phone ? [m.phone] : []);
-    if(phoneList.length === 0) { alert("لا يوجد رقم هاتف!"); return; }
-
-    phoneList.forEach(rawPhone => {
-        if(rawPhone) {
-            let processedPhone = rawPhone.toString().replace(/\s+/g, '');
-            if(processedPhone.startsWith('0')) processedPhone = processedPhone.substring(1);
-            if(!processedPhone.startsWith('964')) processedPhone = '964' + processedPhone;
-            window.open(`https://wa.me/${processedPhone}?text=${message}`, '_blank');
+    // محرك الترحيل التلقائي
+    const lastYear = (parseInt(currentYear) - 1).toString();
+    db.ref('data_by_year/' + lastYear).once('value', (s) => {
+        const d = s.val();
+        if(d) {
+            let inc = 0;
+            membersData.forEach((m, i) => {
+                const count = 1 + (m.family ? m.family.length : 0);
+                const p = d.payments ? (d.payments[i] || {}) : {};
+                Object.values(p).forEach(v => { if(v===1) inc += (count * 2000); });
+            });
+            let exp = 0; if(Array.isArray(d.expenses)) d.expenses.forEach(e => exp += Number(e.amount));
+            const carry = (Number(d.prevBalance || 0) + inc) - exp;
+            
+            db.ref('data_by_year/' + currentYear + '/prevBalance').transaction(cv => (cv === null || cv === 0) ? carry : cv);
         }
     });
+    attach();
+}
+
+function update() {
+    let inc = 0, pep = 0;
+    const pays = financials.payments || {};
+    membersData.forEach((m, i) => {
+        const count = 1 + (m.family ? m.family.length : 0); pep += count;
+        const mp = pays[i] || {};
+        Object.values(mp).forEach(v => { if(v===1) inc += (count * 2000); });
+    });
+    const prev = Number(financials.prevBalance || 0);
+    let exTotal = 0; const exDiv = document.getElementById('expList'); exDiv.innerHTML = '';
+    (financials.expenses || []).forEach((e, i) => {
+        exTotal += Number(e.amount);
+        exDiv.innerHTML += `<div class="expense-log">${isAdmin?`<span onclick="delExp(${i})">❌</span>`:''}<b>${e.amount}</b> - ${e.note}</div>`;
+    });
+    document.getElementById('prevBalanceVal').innerText = prev.toLocaleString() + " د.ع";
+    document.getElementById('monthlyTotal').innerText = inc.toLocaleString() + " د.ع";
+    document.getElementById('expenseTotal').innerText = exTotal.toLocaleString() + " د.ع";
+    document.getElementById('finalBalance').innerText = (prev + inc - exTotal).toLocaleString() + " د.ع";
+    render();
 }
 
 function render() {
-const container = document.getElementById('membersList');
-const search = document.getElementById('searchInput').value.toLowerCase();
-container.innerHTML = '';
-
-membersData.forEach((m, i) => {
-const headNameMatch = m.name.toLowerCase().includes(search);
-const familyNamesMatch = m.family && m.family.some(fName => fName.toLowerCase().includes(search));
-
-if(headNameMatch || familyNamesMatch) {
-    let unpaidList = []; let paidList = [];
-    monthsNames.forEach(month => {
-        if(m.monthsStates && m.monthsStates[month] === 2) unpaidList.push(month);
-        if(m.monthsStates && m.monthsStates[month] === 1) paidList.push(month);
+    const cont = document.getElementById('membersList'), q = document.getElementById('searchInput').value.toLowerCase();
+    cont.innerHTML = '';
+    membersData.forEach((m, i) => {
+        if(m.name.toLowerCase().includes(q) || (m.family && m.family.some(f=>f.toLowerCase().includes(q)))) {
+            let pL = [], uL = []; const mp = (financials.payments || {})[i] || {};
+            monthsNames.forEach(mn => { if(mp[mn]===1) pL.push(mn); if(mp[mn]===2) uL.push(mn); });
+            const card = document.createElement('div');
+            card.className = `member-card ${uL.length>0?'unpaid-member':'paid-member'}`;
+            const count = 1 + (m.family ? m.family.length : 0);
+            
+            if(!isAdmin) {
+                card.innerHTML = `<span class="family-head-name">${m.name}</span><p>👪 الأفراد: ${count}</p>
+                <div class="progress-container"><div class="progress-bar-fill" style="width:${(pL.length/12)*100}%"></div></div>
+                <hr><p>السنة: ${currentYear}</p><p>المدفوعة: ${pL.join(', ') || 'لا يوجد'}</p>
+                <p>${uL.length>0?`<b style="color:red">⚠️ مطلوب: ${(uL.length*count*2000).toLocaleString()}</b>`:'✅ مسدد'}</p>`;
+            } else {
+                card.innerHTML = `<input class="edit-input" value="${m.name}" onchange="upM(${i},'name',this.value)">
+                <div class="months-grid">${monthsNames.map(mn => `<div class="month-btn state-${mp[mn]||0}" onclick="cyc(${i},'${mn}')">${mn}</div>`).join('')}</div>
+                <button class="btn-thanks" onclick="send(${i})">إرسال تفاصيل ${currentYear} (واتساب)</button>
+                <button class="btn-del" onclick="delM(${i})">حذف</button>`;
+            }
+            cont.appendChild(card);
+        }
     });
-    const totalInFamily = 1 + (m.family ? m.family.length : 0);
-    const unpaidAmount = unpaidList.length * totalInFamily * 2000;
-    const hasUnpaid = unpaidList.length > 0;
-    const hasPaid = paidList.length > 0;
-    const progressPercent = (paidList.length / 12) * 100;
-
-    const cardColorClass = hasUnpaid ? 'unpaid-member' : 'paid-member';
-    const card = document.createElement('div');
-    card.className = `member-card ${cardColorClass} ${isAdmin ? 'admin-mode-card' : ''}`;
-
-if(!isAdmin) {
-    let familyNames = m.family ? m.family.filter(n => n).join(" - ") : "لا يوجد أفراد";
-    let statusDisplay = hasUnpaid 
-        ? `<b style="color:red">⚠️ مطلوب مبلغ شهر (${unpaidList.join(" و ")}) والمبلغ هو (${unpaidAmount.toLocaleString()} د.ع)</b>` 
-        : `<b style="color:green">✅ مسدد بالكامل</b>`;
-    
-    card.innerHTML = `<span class="family-head-name">${m.name}</span>
-    <p>👪 عدد أفراد العائلة: ${totalInFamily}</p>
-    <div class="family-section">
-        <span class="family-title">الأسماء:</span>
-        <span class="family-names-display">${familyNames}</span>
-    </div>
-    <div class="progress-container">
-        <div class="progress-bar-fill" style="width: ${progressPercent}%"></div>
-    </div>
-    <small>نسبة الالتزام السنوي: ${Math.round(progressPercent)}%</small>
-    <hr>
-    <p><b>المدفوعة:</b> ${paidList.join(" - ") || "لا يوجد"}</p>
-    <p><b>الحالة:</b> ${statusDisplay}</p>`;
-} else {
-    let familyInputs = '';
-    if(m.family) { m.family.forEach((fName, fIdx) => { familyInputs += `<div class="family-input-container"><input class="family-input" value="${fName}" onchange="updateFamily(${i}, ${fIdx}, this.value)"><span style="cursor:pointer" onclick="deleteFamilyMember(${i}, ${fIdx})">❌</span></div>`; }); }
-    let phoneInputs = '';
-    const phones = Array.isArray(m.phones) ? m.phones : (m.phone ? [m.phone] : [""]);
-    phones.forEach((pNum, pIdx) => { phoneInputs += `<div class="family-input-container"><input class="family-input" placeholder="077..." value="${pNum}" onchange="updatePhone(${i}, ${pIdx}, this.value)"><span style="cursor:pointer" onclick="deletePhone(${i}, ${pIdx})">❌</span></div>`; });
-    let monthsHtml = `<div class="months-grid">`;
-    monthsNames.forEach(month => {
-        const state = (m.monthsStates && m.monthsStates[month]) ? m.monthsStates[month] : 0;
-        monthsHtml += `<div class="month-btn state-${state}" onclick="cycleMonthState(${i}, '${month}')">${month}</div>`;
-    });
-    monthsHtml += `</div>`;
-    
-    card.innerHTML = `<label>الاسم:</label><input class="edit-input" value="${m.name}" onchange="updateM(${i},'name',this.value)">
-    <label>أرقام الهاتف:</label>
-    <div class="family-section" style="background: rgba(52, 152, 219, 0.1);">${phoneInputs}<button class="btn-phone" onclick="addPhoneField(${i})">+ إضافة رقم هاتف</button></div>
-    <label>أفراد العائلة:</label>
-    <div class="family-section">${familyInputs}<button class="btn-family" onclick="addFamilyMember(${i})">+ إضافة فرد</button></div>
-    <label>حالة الأشهر:</label>${monthsHtml}
-    <button class="btn-thanks" onclick="sendThanks(${i})">إرسال تفاصيل الدفع (واتساب)</button>
-    <button class="btn-del" onclick="deleteM(${i})">حذف العضو</button>`;
-}
-container.appendChild(card);
-}
-});
-if(isAdmin) {
-const b = document.createElement('button'); b.className = 'btn-add'; b.innerText = '+ إضافة رب عائلة جديد';
-b.onclick = () => { membersData.push({name:'اسم جديد', phones:[''], family:[], monthsStates:{} }); db.ref('members').set(membersData); };
-container.appendChild(b);
-}
+    if(isAdmin) {
+        const b = document.createElement('button'); b.className = 'btn-add'; b.innerText = '+ إضافة عضو جديد';
+        b.onclick = () => { membersData.push({name:'اسم جديد', family:[], phones:['']}); db.ref('members_base').set(membersData); };
+        cont.appendChild(b);
+    }
 }
 
-function addPhoneField(mIdx) { if(!membersData[mIdx].phones) { membersData[mIdx].phones = membersData[mIdx].phone ? [membersData[mIdx].phone] : []; } membersData[mIdx].phones.push(""); db.ref('members').set(membersData); }
-function updatePhone(mIdx, pIdx, val) { if(!membersData[mIdx].phones) membersData[mIdx].phones = []; membersData[mIdx].phones[pIdx] = val; db.ref('members').set(membersData); }
-function deletePhone(mIdx, pIdx) { membersData[mIdx].phones.splice(pIdx, 1); db.ref('members').set(membersData); }
-function cycleMonthState(memberIdx, monthName) { if(!membersData[memberIdx].monthsStates) membersData[memberIdx].monthsStates = {}; let currentState = membersData[memberIdx].monthsStates[monthName] || 0; let nextState = (currentState + 1) % 3; membersData[memberIdx].monthsStates[monthName] = nextState; db.ref('members').set(membersData); }
-function updateM(i, f, v) { membersData[i][f] = v; db.ref('members').set(membersData); }
-function addFamilyMember(mIdx) { if(!membersData[mIdx].family) membersData[mIdx].family = []; membersData[mIdx].family.push(""); db.ref('members').set(membersData); }
-function updateFamily(mIdx, fIdx, val) { membersData[mIdx].family[fIdx] = val; db.ref('members').set(membersData); }
-function deleteFamilyMember(mIdx, fIdx) { membersData[mIdx].family.splice(fIdx, 1); db.ref('members').set(membersData); }
-function deleteM(i) { if(confirm("حذف العضو بالكامل؟")) { membersData.splice(i,1); db.ref('members').set(membersData); } }
-function uploadBannerPhoto(input) { if (input.files && input.files[0]) { const reader = new FileReader(); reader.onload = function(e) { db.ref('bannerPhoto').set(e.target.result); }; reader.readAsDataURL(input.files[0]); } }
-function uploadSheikhPhoto(input) { if (input.files && input.files[0]) { const reader = new FileReader(); reader.onload = function(e) { db.ref('sheikhPhoto').set(e.target.result); }; reader.readAsDataURL(input.files[0]); } }
-window.onload = () => { updateUI(); };
+function cyc(mi, mn) {
+    let s = ((financials.payments||{})[mi]||{})[mn] || 0;
+    db.ref(`data_by_year/${currentYear}/payments/${mi}/${mn}`).set((s+1)%3);
+}
+
+function checkLogin() {
+    if(document.getElementById('passInput').value === "1234") {
+        isAdmin = true; document.getElementById('loginOverlay').style.display = 'none';
+        document.getElementById('modeText').innerText = "✅ وضع المدير";
+        document.getElementById('prevBalanceEdit').style.display = 'block';
+        document.getElementById('expPanel').style.display = 'block';
+        document.getElementById('uploadLabel').style.display = 'block';
+        document.getElementById('bannerLabel').style.display = 'block';
+        update();
+    }
+}
+
+function send(i) {
+    const m = membersData[i], mp = (financials.payments || {})[i] || {};
+    let p = [], u = []; monthsNames.forEach(mn => { if(mp[mn]===1) p.push(mn); if(mp[mn]===2) u.push(mn); });
+    const count = 1 + (m.family ? m.family.length : 0);
+    let msg = `*صندوق الفاتحة لعام ${currentYear}*%0Aالأخ العزيز: *${m.name}*%0A`;
+    if(p.length) msg += `تم دفع أشهر: (${p.join(', ')})%0A`;
+    if(u.length) msg += `متبقي بذمتكم أشهر: (${u.join(', ')}) بمبلغ *(${(u.length*count*2000).toLocaleString()} د.ع)*%0A`;
+    msg += `رصيد الصندوق: (${document.getElementById('finalBalance').innerText})%0Aشكراً لالتزامكم.`;
+    window.open(`https://wa.me/${m.phones?m.phones[0]:'964'}?text=${msg}`);
+}
+
+function upM(i, f, v) { membersData[i][f] = v; db.ref('members_base').set(membersData); }
+function delM(i) { if(confirm("حذف؟")) { membersData.splice(i,1); db.ref('members_base').set(membersData); } }
+function savePrev() { db.ref(`data_by_year/${currentYear}/prevBalance`).set(Number(document.getElementById('prevInput').value)); }
+function addExp() {
+    const a = document.getElementById('eAmt').value, n = document.getElementById('eNote').value;
+    if(!a) return; const ex = financials.expenses || []; ex.push({amount:a, note:n});
+    db.ref(`data_by_year/${currentYear}/expenses`).set(ex);
+}
+function delExp(i) { financials.expenses.splice(i,1); db.ref(`data_by_year/${currentYear}/expenses`).set(financials.expenses); }
+function openLogin() { document.getElementById('loginOverlay').style.display = 'flex'; }
+function uploadPhoto(path, input) { if(input.files[0]) { const r = new FileReader(); r.onload = e => db.ref(path).set(e.target.result); r.readAsDataURL(input.files[0]); } }
+
+window.onload = attach;
 </script>
 </body>
 </html>
