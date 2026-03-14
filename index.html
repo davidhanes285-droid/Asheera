@@ -2,214 +2,213 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>إدارة صندوق الفاتحة المتطور - 2026</title>
+<title>إدارة صندوق الفاتحة المتطور</title>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 <style>
-:root {
-    --primary-color: #2c3e50;
-    --secondary-color: #3498db;
-    --success-color: #27ae60;
-    --danger-color: #e74c3c;
-    --warning-color: #f1c40f;
-    --light-bg: #f0f2f5;
-}
-
-body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--light-bg); margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; margin: 0; padding: 0; }
 
 .header-section {
-    position: relative;
-    background: #ffffff;
-    padding: 30px 5%;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 4px solid var(--primary-color);
-    background-size: cover;
-    background-position: center;
-    z-index: 1;
+position: relative;
+background: #ffffff;
+padding: 40px 60px;
+display: flex;
+justify-content: space-between;
+align-items: center;
+border-bottom: 2px solid #2c3e50;
+background-size: cover;
+background-position: center;
+overflow: hidden;
+z-index: 1;
 }
 
 .header-section::before {
-    content: "";
-    position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(255, 255, 255, 0.85);
-    z-index: -1;
+content: "";
+position: absolute;
+top: 0; left: 0; right: 0; bottom: 0;
+background: rgba(255, 255, 255, 0.7);
+z-index: -1;
 }
 
-.header-text h1 { margin: 0; font-size: 1.8em; color: var(--primary-color); font-weight: 900; }
-.header-text h2 { margin: 5px 0; font-size: 1.4em; color: #34495e; }
-.header-text h3 { margin: 0; font-size: 1.2em; color: #d35400; font-weight: bold; }
+.header-text {
+text-align: right;
+color: #2c3e50;
+line-height: 1.4;
+z-index: 2;
+}
+.header-text h1 { margin: 0; font-size: 1.8em; font-weight: 900; }
+.header-text h2 { margin: 0; font-size: 1.5em; color: #34495e; }
+.header-text h3 { margin: 0; font-size: 1.3em; color: #000000; font-weight: bold; }
 
-.sheikh-photo-container { text-align: center; }
+.sheikh-photo-container { text-align: center; z-index: 2; }
 .sheikh-img {
-    width: 110px; height: 110px; border-radius: 15px;
-    object-fit: cover; border: 3px solid var(--primary-color);
-    background: #eee; box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+width: 120px;
+height: 120px;
+border-radius: 15px;
+object-fit: cover;
+border: 3px solid #2c3e50;
+background: #eee;
+display: block;
 }
 
 .upload-btn {
-    display: none; margin-top: 8px; font-size: 11px;
-    background: var(--primary-color); color: white;
-    padding: 6px 10px; border-radius: 5px; cursor: pointer;
+display: none;
+margin-top: 5px;
+font-size: 11px;
+background: #34495e;
+color: white;
+padding: 5px;
+border-radius: 5px;
+cursor: pointer;
 }
 
-.admin-bar { background: var(--primary-color); color: white; padding: 12px; text-align: center; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
+.admin-bar { background: #2c3e50; color: white; padding: 15px; text-align: center; position: sticky; top: 0; z-index: 1000; }
 
-.stats-bar { padding: 20px 5%; display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; }
-.stat-item { 
-    text-align: center; min-width: 160px; padding: 15px; border-radius: 12px; 
-    box-shadow: 0 4px 6px rgba(0,0,0,0.05); font-weight: bold; color: var(--primary-color); 
-    background: white; border: 1px solid #ddd; flex: 1;
-}
-.stat-item .val { font-size: 1.4em; font-weight: 900; display: block; margin-top: 5px; color: var(--secondary-color); }
+.stats-bar { background: #ffffff; padding: 20px; display: flex; justify-content: space-around; gap: 15px; border-bottom: 3px solid #3498db; flex-wrap: wrap; }
+.stat-item { text-align: center; flex: 1; min-width: 180px; padding: 15px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); font-weight: bold; color: #2c3e50; border: 1px solid #ddd; }
 
-.item-final { background: var(--primary-color); color: white; border: none; }
-.item-final .val { color: var(--warning-color); }
+.val { font-size: 1.5em; font-weight: 900; display: block; margin-top: 8px; }
 
-.info-banner { 
-    width: 90%; margin: 10px auto; background: #8e44ad; color: white; 
-    padding: 15px; border-radius: 10px; display: flex; 
-    justify-content: space-around; align-items: center; text-align: center;
-}
+.item-prev { background-color: #ecf0f1; border-bottom: 5px solid #95a5a6; }
+.item-in { background-color: #dff9fb; border-bottom: 5px solid #27ae60; color: #27ae60; }
+.item-out { background-color: #ffeaa7; border-bottom: 5px solid #e67e22; color: #d35400; }
+.item-final { background-color: #2c3e50; border-bottom: 5px solid #f1c40f; color: #ffffff; }
+.item-final .val { color: #f1c40f; }
 
-.search-container { padding: 20px; text-align: center; }
-.search-input { 
-    width: 85%; max-width: 600px; padding: 15px 25px; 
-    border: 2px solid var(--secondary-color); border-radius: 50px; 
-    outline: none; font-size: 1.1em; box-shadow: 0 4px 15px rgba(52, 152, 219, 0.1);
-}
+.item-total-people { background-color: #8e44ad; border-bottom: 5px solid #dcdde1; color: #ffffff; margin-top: 10px; width: 100%; flex: none; display: flex; justify-content: space-between; align-items: center; padding: 15px 30px; box-sizing: border-box; }
+
+.search-container { background: #fff; padding: 15px; text-align: center; }
+.search-input { width: 80%; max-width: 500px; padding: 12px; border: 2px solid #3498db; border-radius: 30px; outline: none; text-align: center; font-size: 1em; }
 
 .member-list { display: flex; flex-wrap: wrap; gap: 20px; padding: 20px; justify-content: center; }
-.member-card { 
-    background: white; border-radius: 15px; padding: 20px; width: 330px; 
-    box-shadow: 0 8px 20px rgba(0,0,0,0.05); position: relative;
-    border-top: 6px solid #ccc; transition: transform 0.2s;
-}
 
-/* تلوين البطاقة بالكامل بناءً على الحالة */
-.paid-member { background-color: #d4edda !important; border-top-color: var(--success-color) !important; }
-.unpaid-member { background-color: #f8d7da !important; border-top-color: var(--danger-color) !important; }
+.member-card { background: white; border-radius: 15px; padding: 20px; width: 320px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); border-top: 5px solid #3498db; transition: 0.3s; position: relative; }
+.paid-member { background-color: #e8f8f5 !important; border-top: 5px solid #27ae60 !important; }
+.unpaid-member { background-color: #fdedec !important; border-top: 5px solid #e74c3c !important; }
 
-.family-head-name { font-size: 1.4em; font-weight: 900; color: var(--primary-color); margin-bottom: 10px; display: block; border-bottom: 1px solid rgba(0,0,0,0.05); padding-bottom: 5px; }
+.admin-mode-card { border-top: 5px solid #e67e22; }
+.family-head-name { font-size: 1.6em; font-weight: 900; color: #2c3e50; margin-bottom: 8px; display: block; }
 
-.family-section { margin-top: 10px; padding: 10px; background: rgba(255,255,255,0.5); border-radius: 8px; border: 1px solid rgba(0,0,0,0.05); }
+.family-section { margin-top: 10px; padding: 10px; background: rgba(0,0,0,0.03); border-radius: 8px; }
+.family-title { font-size: 1em; font-weight: bold; color: #2c3e50; margin-bottom: 5px; display: block; text-decoration: underline; }
+.family-names-display { font-size: 1.1em; font-weight: bold; color: #333; line-height: 1.6; display: block; }
 
-.months-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; margin-top: 15px; }
-.month-btn { 
-    font-size: 0.7em; padding: 8px 2px; background: #fff; border: 1px solid #ddd;
-    border-radius: 5px; cursor: pointer; text-align: center; font-weight: bold;
-}
-.state-0 { color: #999; }
-.state-1 { background: var(--success-color) !important; color: white !important; border-color: #1e8449; }
-.state-2 { background: var(--danger-color) !important; color: white !important; border-color: #c0392b; }
+.family-input-container { display: flex; align-items: center; gap: 5px; margin-bottom: 5px; }
+.family-input { flex: 1; padding: 5px; border: 1px solid #ccc; border-radius: 4px; font-size: 0.85em; }
 
-.progress-container { width: 100%; background: rgba(0,0,0,0.1); height: 8px; border-radius: 10px; margin: 10px 0; overflow: hidden; }
-.progress-bar-fill { background: var(--success-color); height: 100%; transition: 0.5s; }
+.edit-input { width: 100%; margin-bottom: 10px; padding: 10px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-weight: bold; }
 
-#loginOverlay { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:9999; justify-content:center; align-items:center; }
-.login-box { background: white; padding: 30px; border-radius: 20px; width: 300px; text-align: center; }
+.months-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; margin-top: 10px; }
+.month-btn { font-size: 0.75em; padding: 8px 5px; background: #eee; border-radius: 4px; cursor: pointer; text-align: center; border: 1px solid #ddd; transition: 0.2s; font-weight: bold; }
 
-.edit-input { width: 100%; margin-bottom: 10px; padding: 10px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
-button { cursor: pointer; border: none; border-radius: 8px; padding: 10px 15px; font-weight: bold; transition: 0.3s; }
-.btn-save { background: var(--secondary-color); color: white; width: 100%; }
-.btn-add { background: var(--success-color); color: white; padding: 15px 40px; font-size: 1.2em; margin: 20px auto; display: block; }
-.btn-thanks { background: #25d366; color: white; width: 100%; margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+.month-btn.state-0 { background: #eee; color: #777; }
+.month-btn.state-1 { background: #27ae60; color: white; border-color: #1e8449; }
+.month-btn.state-2 { background: #e74c3c; color: white; border-color: #c0392b; }
 
-/* تنسيق سجل المصروفات */
-.expense-log { font-size: 0.85em; background: rgba(255, 255, 255, 0.7); border: 1px solid rgba(0,0,0,0.1); padding: 8px; margin-top: 5px; border-radius: 6px; text-align: right; color: #333; }
-#expenseDisplay { margin-top: 10px; max-height: 200px; overflow-y: auto; padding: 5px; border-top: 1px dashed #ccc; }
+.expense-log { font-size: 0.8em; text-align: right; background: #fff; border: 1px solid #eee; padding: 8px; margin-top: 5px; border-radius: 5px; position: relative; color: #333; }
+.btn-del-exp { background: #e74c3c; color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; float: left; cursor: pointer; }
 
-@media (max-width: 600px) {
-    .header-section { flex-direction: column; text-align: center; padding: 20px; }
-    .header-text { margin-bottom: 15px; }
-    .stat-item { min-width: 120px; padding: 10px; }
-    .months-grid { grid-template-columns: repeat(3, 1fr); }
-}
+#loginOverlay { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; justify-content:center; align-items:center; }
+.login-box { background: white; padding: 40px; border-radius: 20px; width: 320px; text-align: center; }
+
+button { cursor: pointer; border: none; border-radius: 6px; padding: 10px 15px; font-weight: bold; transition: 0.3s; }
+.btn-add { background: #27ae60; color: white; width: 280px; font-size: 1.1em; margin: 20px; }
+.btn-save { background: #3498db; color: white; width: 100%; }
+.btn-del { background: #c0392b; color: white; width: 100%; margin-top: 10px; }
+.btn-family { background: #9b59b6; color: white; font-size: 0.8em; margin-bottom: 10px; width: 100%; }
+.btn-phone { background: #3498db; color: white; font-size: 0.8em; margin-bottom: 10px; width: 100%; }
+
+.btn-thanks { background: #f1c40f; color: #2c3e50; width: 100%; margin-top: 5px; font-size: 0.85em; display: flex; align-items: center; justify-content: center; gap: 5px; }
+
+.progress-container { width: 100%; background: #eee; height: 10px; border-radius: 5px; margin-top: 10px; overflow: hidden; }
+.progress-bar-fill { background: #27ae60; height: 100%; transition: 0.5s; }
 </style>
 </head>
 <body>
 
 <div class="header-section" id="bannerSection">
-    <div class="header-text">
-        <h1>صندوق الفاتحة لعام 2026</h1>
-        <h2>قبيلة العبودة - عشيرة ال جهل</h2>
-        <h3>إشراف الشيخ العام</h3>
-        <label for="bannerUpload" id="bannerLabel" class="upload-btn">🖼️ تغيير صورة الغلاف</label>
-        <input type="file" id="bannerUpload" style="display:none;" accept="image/*" onchange="uploadPhoto('bannerPhoto', this)">
-    </div>
-    <div class="sheikh-photo-container">
-        <img id="sheikhImg" src="https://via.placeholder.com/110?text=صورة+الشيخ" class="sheikh-img" />
-        <label for="sheikhUpload" id="uploadLabel" class="upload-btn">📷 تغيير الصورة</label>
-        <input type="file" id="sheikhUpload" style="display:none;" accept="image/*" onchange="uploadPhoto('sheikhPhoto', this)">
-    </div>
+<div class="header-text">
+<h1>صندوق الفاتحة لعام 2026</h1>
+<h2>قبيلة العبودة</h2>
+<h3>عشيرة ال جهل</h3>
+<label for="bannerUpload" id="bannerLabel" class="upload-btn">🖼️ تغيير شعار الصندوق</label>
+<input type="file" id="bannerUpload" style="display:none;" accept="image/*" onchange="uploadBannerPhoto(this)">
+</div>
+<div class="sheikh-photo-container">
+<img id="sheikhImg" src="https://via.placeholder.com/120?text=صورة+الشيخ" class="sheikh-img" />
+<label for="sheikhUpload" id="uploadLabel" class="upload-btn">📷 تغيير صورة الشيخ</label>
+<input type="file" id="sheikhUpload" style="display:none;" accept="image/*" onchange="uploadSheikhPhoto(this)">
+</div>
+</div>
+
+<div id="loginOverlay">
+<div class="login-box">
+<h2 style="margin-bottom:20px;">دخول لوحة التحكم</h2>
+<input type="password" id="passInput" class="edit-input" placeholder="كلمة المرور" style="text-align:center;" />
+<button onclick="checkLogin()" class="btn-save" style="margin-bottom:10px;">دخول</button>
+<button onclick="closeLogin()" style="background:#95a5a6; color:white; width:100%;">إلغاء</button>
+</div>
 </div>
 
 <div class="admin-bar">
-    <span id="modeText">📱 وضع المشاهدة العامة</span>
-    <button id="loginBtn" onclick="openLogin()" style="background:var(--secondary-color); color:white; margin-right:15px; padding: 5px 15px;">دخول المدير 🔐</button>
-    <button id="logoutBtn" onclick="location.reload()" style="display:none; background:#95a5a6; color:white;">خروج 🚪</button>
+<span id="modeText">📱 وضع المشاهدة</span>
+<button id="loginBtn" onclick="openLogin()" style="background:#3498db; color:white; margin-right:15px;">دخول المدير 🔐</button>
+<button id="logoutBtn" onclick="location.reload()" style="display:none; background:#95a5a6; color:white;">خروج 🚪</button>
 </div>
 
 <div class="stats-bar">
-    <div class="stat-item">الرصيد السابق 2025<span id="prevBalanceVal" class="val">0</span>
-        <div id="prevBalanceEdit" style="display:none; margin-top:5px;">
-            <input type="number" id="prevBalanceInput" class="edit-input" placeholder="المبلغ">
-            <button onclick="updatePrevBalance()" class="btn-save">حفظ</button>
-        </div>
-    </div>
-    <div class="stat-item">مقبوضات 2026<span id="monthlyTotal" class="val">0</span></div>
-    
-    <!-- خانة المصروفات مفصلة للجميع -->
-    <div class="stat-item">إجمالي المصروفات<span id="expenseTotal" class="val" style="color:var(--danger-color)">0</span>
-        <div style="font-size: 0.8em; margin-top: 10px; color: #555;">سجل الصرف والتاريخ:</div>
-        <div id="expenseDisplay"></div>
-    </div>
-    
-    <div class="stat-item item-final">الصافي المتوفر<span id="finalBalance" class="val">0</span></div>
-</div>
-
-<div id="adminExpensePanel" style="display:none; background:#fff; margin:0 5%; padding:20px; border-radius:15px; border:2px dashed var(--danger-color);">
-    <h4>إضافة مصروف جديد (للمدير فقط):</h4>
-    <div style="display:flex; gap:10px; flex-wrap:wrap;">
-        <input type="number" id="expAmt" class="edit-input" style="flex:1" placeholder="المبلغ">
-        <input type="text" id="expNote" class="edit-input" style="flex:2" placeholder="السبب">
-        <input type="date" id="expDate" class="edit-input" style="flex:1">
-        <button onclick="addExpense()" class="btn-save" style="background:var(--danger-color); flex:1">إضافة</button>
+<div class="stat-item item-prev">
+    الرصيد السابق (2025)
+    <span id="prevBalanceVal" class="val">0</span>
+    <div id="prevBalanceEditable" style="display:none; margin-top:10px; padding-top:10px; border-top:1px solid #ccc;">
+        <input type="number" id="prevBalanceInput" class="edit-input" placeholder="رصيد السنة السابقة" style="font-size: 0.8em; margin-bottom:5px;">
+        <button onclick="updatePrevBalance()" class="btn-save" style="padding: 5px; font-size: 0.8em;">حفظ المبلغ</button>
     </div>
 </div>
 
-<div class="info-banner">
-    <div>عدد المشتركين الكلي: <span id="totalPeopleCount" style="font-weight:bold; font-size:1.2em;">0</span></div>
-    <div>الشهر الحالي: <span id="currentDateDisplay" style="font-weight:bold; font-size:1.2em; color:var(--warning-color)">-</span></div>
+<div class="stat-item item-in">مجموع مقبوضات الصندوق<span id="monthlyTotal" class="val">0</span></div>
+
+<div class="stat-item item-out">
+إجمالي المصروفات
+<span id="expenseTotal" class="val">0</span>
+<div id="adminExpensePanel" style="display:none; margin-top:10px; border-top:1px solid #d35400; padding-top:10px;">
+<input type="number" id="expAmt" class="edit-input" placeholder="المبلغ" />
+<input type="text" id="expNote" class="edit-input" placeholder="سبب الصرف" />
+<input type="date" id="expDate" class="edit-input" />
+<button onclick="addExpense()" class="btn-save" style="background:#e67e22;">إضافة مصروف</button>
+</div>
+<div id="expenseDisplay" style="max-height:150px; overflow-y:auto; margin-top:10px;"></div>
+</div>
+
+<div class="stat-item item-final">صافي المتوفر بالصندوق<span id="finalBalance" class="val">0</span></div>
+
+<div class="item-total-people">
+<div style="text-align: right;">
+عدد افراد المشتركين في صندوق الفاتحة
+<span id="totalPeopleCount" style="font-size: 1.5em; font-weight: 900; display: block;">0</span>
+</div>
+<div style="text-align: left;">
+الشهر الحالي
+<span id="currentDateDisplay" style="font-size: 1.5em; font-weight: 900; display: block; color: #f1c40f;">-</span>
+</div>
+</div>
 </div>
 
 <div class="search-container">
-    <input type="text" id="searchInput" class="search-input" placeholder="🔍 ابحث بالاسم أو رقم الهاتف..." onkeyup="render()" />
+<input type="text" id="searchInput" class="search-input" placeholder="🔍 ابحث عن أي اسم (رب العائلة أو فرد)..." onkeyup="render()" />
 </div>
 
 <div id="membersList" class="member-list"></div>
 
-<div id="loginOverlay">
-    <div class="login-box">
-        <h3>دخول الإدارة</h3>
-        <input type="password" id="passInput" class="edit-input" placeholder="كلمة المرور" />
-        <button onclick="checkLogin()" class="btn-save">دخول</button>
-        <button onclick="closeLogin()" style="background:#ccc; margin-top:5px; width:100%;">إلغاء</button>
-    </div>
-</div>
-
 <script>
 const firebaseConfig = {
-    apiKey: "AIzaSyCcd3U55cFj0QoZW4Fgk6RzHXsijv1mce0",
-    authDomain: "asheera-e3178.firebaseapp.com",
-    databaseURL: "https://asheera-e3178-default-rtdb.firebaseio.com",
-    projectId: "asheera-e3178",
-    storageBucket: "asheera-e3178.firebasestorage.app",
-    messagingSenderId: "863501168077",
-    appId: "1:863501168077:web:7539e176fa4f82140ee884"
+apiKey: "AIzaSyCcd3U55cFj0QoZW4Fgk6RzHXsijv1mce0",
+authDomain: "asheera-e3178.firebaseapp.com",
+databaseURL: "https://asheera-e3178-default-rtdb.firebaseio.com",
+projectId: "asheera-e3178",
+storageBucket: "asheera-e3178.firebasestorage.app",
+messagingSenderId: "863501168077",
+appId: "1:863501168077:web:7539e176fa4f82140ee884"
 };
 
 firebase.initializeApp(firebaseConfig);
@@ -219,225 +218,215 @@ let isAdmin = false;
 let membersData = [];
 let financials = { prevBalance: 0, expenses: [] };
 const monthsNames = ["كانون الثاني", "شباط", "آذار", "نيسان", "أيار", "حزيران", "تموز", "آب", "أيلول", "تشرين الأول", "تشرين الثاني", "كانون الأول"];
-const ADMIN_PASS = "1234";
 
-db.ref('sheikhPhoto').on('value', s => { if(s.val()) document.getElementById('sheikhImg').src = s.val(); });
-db.ref('bannerPhoto').on('value', s => { if(s.val()) document.getElementById('bannerSection').style.backgroundImage = `url('${s.val()}')`; });
-db.ref('members').on('value', s => { membersData = s.val() || []; updateUI(); });
-db.ref('financials_v2').on('value', s => { financials = s.val() || { prevBalance: 0, expenses: [] }; updateUI(); });
+db.ref('sheikhPhoto').on('value', (s) => { if(s.val()) document.getElementById('sheikhImg').src = s.val(); });
+db.ref('bannerPhoto').on('value', (s) => { if(s.val()) document.getElementById('bannerSection').style.backgroundImage = `url('${s.val()}')`; });
+db.ref('members').on('value', (s) => { membersData = s.val() || []; updateUI(); });
+db.ref('financials_v2').on('value', (s) => { financials = s.val() || { prevBalance: 0, expenses: [] }; updateUI(); });
 
 function checkLogin() {
-    if(document.getElementById('passInput').value === ADMIN_PASS) {
-        isAdmin = true;
-        closeLogin();
-        document.getElementById('modeText').innerText = "✅ لوحة التحكم النشطة";
-        document.getElementById('loginBtn').style.display = 'none';
-        document.getElementById('logoutBtn').style.display = 'inline-block';
-        document.getElementById('prevBalanceEdit').style.display = 'block';
-        document.getElementById('uploadLabel').style.display = 'block';
-        document.getElementById('bannerLabel').style.display = 'block';
-        document.getElementById('adminExpensePanel').style.display = 'block';
-        updateUI(); 
-    } else { alert("كلمة المرور خاطئة!"); }
+if(document.getElementById('passInput').value === "1234") {
+isAdmin = true; closeLogin();
+document.getElementById('modeText').innerText = "✅ وضع المدير";
+document.getElementById('loginBtn').style.display = 'none';
+document.getElementById('logoutBtn').style.display = 'inline-block';
+document.getElementById('prevBalanceEditable').style.display = 'block';
+document.getElementById('uploadLabel').style.display = 'block';
+document.getElementById('bannerLabel').style.display = 'block';
+document.getElementById('adminExpensePanel').style.display = 'block';
+updateUI();
+} else { alert("خطأ في كلمة المرور!"); }
 }
 
-function openLogin() { document.getElementById('loginOverlay').style.display = 'flex'; document.getElementById('passInput').focus(); }
+function openLogin() { document.getElementById('loginOverlay').style.display = 'flex'; }
 function closeLogin() { document.getElementById('loginOverlay').style.display = 'none'; }
 
 function updateUI() {
-    let totalIncome = 0;
-    let totalPeople = 0;
-
-    membersData.forEach(m => {
-        const peopleCount = 1 + (m.family ? m.family.length : 0);
-        totalPeople += peopleCount;
-        if(m.monthsStates) {
-            Object.values(m.monthsStates).forEach(state => {
-                if(state === 1) totalIncome += (peopleCount * 2000);
-            });
-        }
+let totalIncome = 0; let totalPeople = 0;
+membersData.forEach(m => {
+const peopleCount = 1 + (m.family ? m.family.length : 0);
+totalPeople += peopleCount;
+if(m.monthsStates) {
+    Object.values(m.monthsStates).forEach(state => {
+        if(state === 1) totalIncome += (peopleCount * 2000);
     });
-
-    const prevBal = Number(financials.prevBalance || 0);
-    document.getElementById('prevBalanceVal').innerText = prevBal.toLocaleString() + " د.ع";
-    document.getElementById('monthlyTotal').innerText = totalIncome.toLocaleString() + " د.ع";
-
-    let totalExp = 0;
-    const expDiv = document.getElementById('expenseDisplay');
-    expDiv.innerHTML = '';
-    
-    const expArray = Array.isArray(financials.expenses) ? financials.expenses : [];
-    expArray.forEach((e, idx) => {
-        totalExp += Number(e.amount);
-        expDiv.innerHTML += `
-            <div class="expense-log">
-                ${isAdmin ? `<button onclick="deleteExpense(${idx})" style="background:red; color:white; padding:2px 5px; font-size:10px; float:left; border-radius:3px;">حذف</button>` : ''}
-                <b>${Number(e.amount).toLocaleString()} د.ع</b><br>
-                <span>${e.note}</span><br>
-                <small style="color:#7f8c8d">${e.date}</small>
-            </div>`;
-    });
-
-    document.getElementById('expenseTotal').innerText = totalExp.toLocaleString() + " د.ع";
-    document.getElementById('finalBalance').innerText = ((prevBal + totalIncome) - totalExp).toLocaleString() + " د.ع";
-    document.getElementById('totalPeopleCount').innerText = totalPeople + " فرد";
-    document.getElementById('currentDateDisplay').innerText = monthsNames[new Date().getMonth()] + " " + new Date().getFullYear();
-    render();
 }
+});
+let prevBalanceValue = Number(financials.prevBalance || 0);
+document.getElementById('prevBalanceVal').innerText = prevBalanceValue.toLocaleString() + " د.ع";
+document.getElementById('monthlyTotal').innerText = totalIncome.toLocaleString() + " د.ع";
 
-function render() {
-    const container = document.getElementById('membersList');
-    const search = document.getElementById('searchInput').value.toLowerCase();
-    container.innerHTML = '';
-
-    membersData.forEach((m, i) => {
-        const familyStr = m.family ? m.family.join(' ') : '';
-        const phonesStr = m.phones ? m.phones.join(' ') : (m.phone || '');
-        
-        if(m.name.toLowerCase().includes(search) || familyStr.toLowerCase().includes(search) || phonesStr.includes(search)) {
-            let paidMonths = [], unpaidMonths = [];
-            monthsNames.forEach(mon => {
-                const state = (m.monthsStates && m.monthsStates[mon]) ? m.monthsStates[mon] : 0;
-                if(state === 1) paidMonths.push(mon);
-                if(state === 2) unpaidMonths.push(mon);
-            });
-
-            const totalInFamily = 1 + (m.family ? m.family.length : 0);
-            const progress = (paidMonths.length / 12) * 100;
-            const card = document.createElement('div');
-            
-            const isUnpaid = unpaidMonths.length > 0;
-            card.className = `member-card ${isUnpaid ? 'unpaid-member' : 'paid-member'}`;
-
-            if(!isAdmin) {
-                card.innerHTML = `
-                    <span class="family-head-name">${m.name}</span>
-                    <p style="margin:5px 0; font-size:0.9em;">👨‍👩‍👧‍👦 أفراد العائلة: <b>${totalInFamily}</b></p>
-                    <div class="family-section">
-                        <small>الأسماء: ${m.family && m.family.length > 0 ? m.family.join(' - ') : 'فردي'}</small>
-                    </div>
-                    <div class="progress-container"><div class="progress-bar-fill" style="width:${progress}%"></div></div>
-                    <p style="font-size:0.85em;">المدفوع: <span style="color:green; font-weight:bold;">${paidMonths.join('، ') || 'لا يوجد'}</span></p>
-                    ${isUnpaid ? `<p style="font-size:0.85em; color:red; font-weight:bold;">المطلوب بذمته: ${unpaidMonths.join('، ')}<br>المبلغ: ${(unpaidMonths.length * totalInFamily * 2000).toLocaleString()} د.ع</p>` : '<p style="color:green; font-weight:bold;">✅ تم الدفع شكراً لالتزامكم</p>'}
-                `;
-            } else {
-                let familyHtml = (m.family || []).map((f, fi) => `<div style="display:flex; gap:5px; margin-bottom:5px;"><input class="edit-input" style="margin:0" value="${f}" onchange="updateFamily(${i},${fi},this.value)"><button onclick="deleteFamily(${i},${fi})" style="background:red; color:white;">×</button></div>`).join('');
-                let phoneHtml = (m.phones || ['']).map((p, pi) => `<div style="display:flex; gap:5px; margin-bottom:5px;"><input class="edit-input" style="margin:0" value="${p}" onchange="updatePhone(${i},${pi},this.value)"><button onclick="deletePhone(${i},${pi})" style="background:red; color:white;">×</button></div>`).join('');
-                
-                let monthsHtml = `<div class="months-grid">`;
-                monthsNames.forEach(mon => {
-                    const state = (m.monthsStates && m.monthsStates[mon]) ? m.monthsStates[mon] : 0;
-                    monthsHtml += `<div class="month-btn state-${state}" onclick="cycleMonth(${i},'${mon}')">${mon}</div>`;
-                });
-                monthsHtml += `</div>`;
-
-                card.innerHTML = `
-                    <input class="edit-input" style="font-weight:bold; color:var(--primary-color)" value="${m.name}" onchange="updateM(${i},'name',this.value)">
-                    <div class="family-section">
-                        <small>الهواتف:</small>${phoneHtml}
-                        <button class="btn-save" style="padding:4px; font-size:10px;" onclick="addPhone(${i})">+ إضافة رقم</button>
-                    </div>
-                    <div class="family-section">
-                        <small>أفراد العائلة:</small>${familyHtml}
-                        <button class="btn-save" style="padding:4px; font-size:10px;" onclick="addFamily(${i})">+ إضافة فرد</button>
-                    </div>
-                    ${monthsHtml}
-                    <button class="btn-thanks" onclick="sendWhatsApp(${i})">إرسال تفاصيل (WhatsApp) 📱</button>
-                    <button class="btn-save" style="background:#c0392b; margin-top:10px;" onclick="deleteM(${i})">حذف العضو نهائياً</button>
-                `;
-            }
-            container.appendChild(card);
-        }
-    });
-
-    if(isAdmin) {
-        const addBtn = document.createElement('button');
-        addBtn.className = 'btn-add';
-        addBtn.innerHTML = '➕ إضافة رب عائلة جديد';
-        addBtn.onclick = () => {
-            membersData.push({ name: "اسم جديد", phones: [""], family: [], monthsStates: {} });
-            saveMembers();
-        };
-        container.appendChild(addBtn);
-    }
+let totalExp = 0;
+const expArray = Array.isArray(financials.expenses) ? financials.expenses : [];
+const expDiv = document.getElementById('expenseDisplay');
+expDiv.innerHTML = '';
+expArray.forEach((e, idx) => {
+totalExp += Number(e.amount || 0);
+let delBtn = isAdmin ? `<span class="btn-del-exp" onclick="deleteExpense(${idx})">حذف ❌</span>` : '';
+expDiv.innerHTML += `<div class="expense-log">${delBtn}<b>${Number(e.amount).toLocaleString()}</b> - ${e.note} <br><small>${e.date}</small></div>`;
+});
+document.getElementById('expenseTotal').innerText = totalExp.toLocaleString() + " د.ع";
+document.getElementById('finalBalance').innerText = ((prevBalanceValue + totalIncome) - totalExp).toLocaleString() + " د.ع";
+document.getElementById('totalPeopleCount').innerText = totalPeople + " فرد";
+const now = new Date();
+document.getElementById('currentDateDisplay').innerText = monthsNames[now.getMonth()] + " " + now.getFullYear();
+render();
 }
-
-function updateM(i, f, v) { membersData[i][f] = v; saveMembers(); }
-function cycleMonth(mi, mon) {
-    if(!membersData[mi].monthsStates) membersData[mi].monthsStates = {};
-    let s = membersData[mi].monthsStates[mon] || 0;
-    membersData[mi].monthsStates[mon] = (s + 1) % 3;
-    saveMembers();
-}
-function addFamily(i) { if(!membersData[i].family) membersData[i].family = []; membersData[i].family.push(""); saveMembers(); }
-function deleteFamily(i, fi) { membersData[i].family.splice(fi, 1); saveMembers(); }
-function updateFamily(i, fi, v) { membersData[i].family[fi] = v; saveMembers(); }
-function addPhone(i) { if(!membersData[i].phones) membersData[i].phones = [""]; membersData[i].phones.push(""); saveMembers(); }
-function deletePhone(i, pi) { membersData[i].phones.splice(pi, 1); saveMembers(); }
-function updatePhone(i, pi, v) { membersData[i].phones[pi] = v; saveMembers(); }
-function deleteM(i) { if(confirm("هل أنت متأكد من حذف هذا العضو؟")) { membersData.splice(i, 1); saveMembers(); } }
-
-function saveMembers() { db.ref('members').set(membersData); }
 
 function updatePrevBalance() {
-    const val = document.getElementById('prevBalanceInput').value;
-    if(val !== "") { db.ref('financials_v2/prevBalance').set(Number(val)); }
+const val = document.getElementById('prevBalanceInput').value;
+if(val === "") { alert("يرجى إدخال مبلغ"); return; }
+db.ref('financials_v2/prevBalance').set(Number(val));
+document.getElementById('prevBalanceInput').value = "";
 }
 
 function addExpense() {
-    const amt = document.getElementById('expAmt').value;
-    const note = document.getElementById('expNote').value;
-    const date = document.getElementById('expDate').value || new Date().toISOString().split('T')[0];
-    if(!amt || !note) { alert("أكمل بيانات المصروف"); return; }
-    if(!financials.expenses) financials.expenses = [];
-    financials.expenses.push({ amount: amt, note: note, date: date });
-    db.ref('financials_v2/expenses').set(financials.expenses);
-    document.getElementById('expAmt').value = ''; document.getElementById('expNote').value = '';
+const amt = document.getElementById('expAmt').value;
+const note = document.getElementById('expNote').value;
+const date = document.getElementById('expDate').value;
+if(!amt || !date) return;
+const currentExp = Array.isArray(financials.expenses) ? financials.expenses : [];
+currentExp.push({ amount: Number(amt), note: note, date: date });
+db.ref('financials_v2/expenses').set(currentExp);
 }
 
-function deleteExpense(idx) {
-    if(confirm("حذف هذا المصرف؟")) {
-        financials.expenses.splice(idx, 1);
-        db.ref('financials_v2/expenses').set(financials.expenses);
-    }
-}
+function deleteExpense(idx) { if(confirm("حذف؟")) { financials.expenses.splice(idx, 1); db.ref('financials_v2/expenses').set(financials.expenses); } }
 
-function uploadPhoto(path, input) {
-    if (input.files && input.files[0]) {
-        const reader = new FileReader();
-        reader.onload = e => db.ref(path).set(e.target.result);
-        reader.readAsDataURL(input.files[0]);
-    }
-}
-
-function sendWhatsApp(i) {
-    const m = membersData[i];
-    const phone = (m.phones && m.phones[0]) ? m.phones[0].replace(/\s+/g, '') : '';
-    if(!phone) { alert("لا يوجد رقم هاتف!"); return; }
-
-    let paid = [], debt = [];
-    monthsNames.forEach(mon => {
-        if(m.monthsStates && m.monthsStates[mon] === 1) paid.push(mon);
-        if(m.monthsStates && m.monthsStates[mon] === 2) debt.push(mon);
-    });
-
+function sendThanks(memberIdx) {
+    const m = membersData[memberIdx];
+    const finalBalance = document.getElementById('finalBalance').innerText;
     const totalInFamily = 1 + (m.family ? m.family.length : 0);
-    const debtAmount = debt.length * totalInFamily * 2000;
+    const amountPerMonth = totalInFamily * 2000;
+    const currentYear = new Date().getFullYear(); // جلب السنة الحالية تلقائياً
 
-    let msg = `*صندوق الفاتحة لعام 2026*%0A`;
-    msg += `الأخ العزيز: *${m.name}*%0A%0A`;
-    if(paid.length > 0) msg += `✅ تم استلام اشتراك أشهر: (${paid.join(' - ')})%0A`;
-    if(debt.length > 0) {
-        msg += `⚠️ المتبقي بذمتكم أشهر: (${debt.join(' - ')})%0A`;
-        msg += `💰 المبلغ المطلوب: *${debtAmount.toLocaleString()} دينار*%0A`;
+    let paidList = [];
+    let unpaidList = [];
+    
+    monthsNames.forEach(month => {
+        const state = (m.monthsStates && m.monthsStates[month]) ? m.monthsStates[month] : 0;
+        if(state === 1) paidList.push(month);
+        if(state === 2) unpaidList.push(month);
+    });
+    
+    if(paidList.length === 0 && unpaidList.length === 0) { alert("لا توجد بيانات سداد!"); return; }
+
+    let message = `*صندوق الفاتحة*%0A%0A` +
+                  `الأخ العزيز: *${m.name}*%0A`;
+    
+    if(paidList.length > 0) {
+        message += `تم بحمد الله *دفع* اشتراك أشهر سنة ${currentYear}: *(${paidList.join("، ")})*%0A%0A`;
     }
-    msg += `%0Aشكراً لالتزامكم ودعمكم المستمر.%0A*إدارة الصندوق*`;
+    
+    if(unpaidList.length > 0) {
+        message += `*متبقي بذمتكم الأشهر التالية لسنة ${currentYear}:*%0A` +
+                   `الأشهر: (${unpaidList.join("، ")})%0A` +
+                   `المبلغ المطلوب: *(${(unpaidList.length * amountPerMonth).toLocaleString()} د.ع)*%0A%0A`;
+    }
 
-    let finalPhone = phone.startsWith('0') ? '964' + phone.substring(1) : phone;
-    window.open(`https://wa.me/${finalPhone}?text=${msg}`, '_blank');
+    message += `رصيد الصندوق الكلي: *(${finalBalance})*%0A` +
+               `شكراً لالتزامكم.. يداً بيد لخدمة صندوق الفاتحة.`;
+    
+    const phoneList = Array.isArray(m.phones) ? m.phones : (m.phone ? [m.phone] : []);
+    if(phoneList.length === 0) { alert("لا يوجد رقم هاتف!"); return; }
+
+    phoneList.forEach(rawPhone => {
+        if(rawPhone) {
+            let processedPhone = rawPhone.toString().replace(/\s+/g, '');
+            if(processedPhone.startsWith('0')) processedPhone = processedPhone.substring(1);
+            if(!processedPhone.startsWith('964')) processedPhone = '964' + processedPhone;
+            window.open(`https://wa.me/${processedPhone}?text=${message}`, '_blank');
+        }
+    });
 }
 
-window.onload = updateUI;
+function render() {
+const container = document.getElementById('membersList');
+const search = document.getElementById('searchInput').value.toLowerCase();
+container.innerHTML = '';
+
+membersData.forEach((m, i) => {
+const headNameMatch = m.name.toLowerCase().includes(search);
+const familyNamesMatch = m.family && m.family.some(fName => fName.toLowerCase().includes(search));
+
+if(headNameMatch || familyNamesMatch) {
+    let unpaidList = []; let paidList = [];
+    monthsNames.forEach(month => {
+        if(m.monthsStates && m.monthsStates[month] === 2) unpaidList.push(month);
+        if(m.monthsStates && m.monthsStates[month] === 1) paidList.push(month);
+    });
+    const totalInFamily = 1 + (m.family ? m.family.length : 0);
+    const unpaidAmount = unpaidList.length * totalInFamily * 2000;
+    const hasUnpaid = unpaidList.length > 0;
+    const hasPaid = paidList.length > 0;
+    const progressPercent = (paidList.length / 12) * 100;
+
+    const cardColorClass = hasUnpaid ? 'unpaid-member' : 'paid-member';
+    const card = document.createElement('div');
+    card.className = `member-card ${cardColorClass} ${isAdmin ? 'admin-mode-card' : ''}`;
+
+if(!isAdmin) {
+    let familyNames = m.family ? m.family.filter(n => n).join(" - ") : "لا يوجد أفراد";
+    let statusDisplay = hasUnpaid 
+        ? `<b style="color:red">⚠️ مطلوب مبلغ شهر (${unpaidList.join(" و ")}) والمبلغ هو (${unpaidAmount.toLocaleString()} د.ع)</b>` 
+        : `<b style="color:green">✅ مسدد بالكامل</b>`;
+    
+    card.innerHTML = `<span class="family-head-name">${m.name}</span>
+    <p>👪 عدد أفراد العائلة: ${totalInFamily}</p>
+    <div class="family-section">
+        <span class="family-title">الأسماء:</span>
+        <span class="family-names-display">${familyNames}</span>
+    </div>
+    <div class="progress-container">
+        <div class="progress-bar-fill" style="width: ${progressPercent}%"></div>
+    </div>
+    <small>نسبة الالتزام السنوي: ${Math.round(progressPercent)}%</small>
+    <hr>
+    <p><b>المدفوعة:</b> ${paidList.join(" - ") || "لا يوجد"}</p>
+    <p><b>الحالة:</b> ${statusDisplay}</p>`;
+} else {
+    let familyInputs = '';
+    if(m.family) { m.family.forEach((fName, fIdx) => { familyInputs += `<div class="family-input-container"><input class="family-input" value="${fName}" onchange="updateFamily(${i}, ${fIdx}, this.value)"><span style="cursor:pointer" onclick="deleteFamilyMember(${i}, ${fIdx})">❌</span></div>`; }); }
+    let phoneInputs = '';
+    const phones = Array.isArray(m.phones) ? m.phones : (m.phone ? [m.phone] : [""]);
+    phones.forEach((pNum, pIdx) => { phoneInputs += `<div class="family-input-container"><input class="family-input" placeholder="077..." value="${pNum}" onchange="updatePhone(${i}, ${pIdx}, this.value)"><span style="cursor:pointer" onclick="deletePhone(${i}, ${pIdx})">❌</span></div>`; });
+    let monthsHtml = `<div class="months-grid">`;
+    monthsNames.forEach(month => {
+        const state = (m.monthsStates && m.monthsStates[month]) ? m.monthsStates[month] : 0;
+        monthsHtml += `<div class="month-btn state-${state}" onclick="cycleMonthState(${i}, '${month}')">${month}</div>`;
+    });
+    monthsHtml += `</div>`;
+    
+    card.innerHTML = `<label>الاسم:</label><input class="edit-input" value="${m.name}" onchange="updateM(${i},'name',this.value)">
+    <label>أرقام الهاتف:</label>
+    <div class="family-section" style="background: rgba(52, 152, 219, 0.1);">${phoneInputs}<button class="btn-phone" onclick="addPhoneField(${i})">+ إضافة رقم هاتف</button></div>
+    <label>أفراد العائلة:</label>
+    <div class="family-section">${familyInputs}<button class="btn-family" onclick="addFamilyMember(${i})">+ إضافة فرد</button></div>
+    <label>حالة الأشهر:</label>${monthsHtml}
+    <button class="btn-thanks" onclick="sendThanks(${i})">إرسال تفاصيل الدفع (واتساب)</button>
+    <button class="btn-del" onclick="deleteM(${i})">حذف العضو</button>`;
+}
+container.appendChild(card);
+}
+});
+if(isAdmin) {
+const b = document.createElement('button'); b.className = 'btn-add'; b.innerText = '+ إضافة رب عائلة جديد';
+b.onclick = () => { membersData.push({name:'اسم جديد', phones:[''], family:[], monthsStates:{} }); db.ref('members').set(membersData); };
+container.appendChild(b);
+}
+}
+
+function addPhoneField(mIdx) { if(!membersData[mIdx].phones) { membersData[mIdx].phones = membersData[mIdx].phone ? [membersData[mIdx].phone] : []; } membersData[mIdx].phones.push(""); db.ref('members').set(membersData); }
+function updatePhone(mIdx, pIdx, val) { if(!membersData[mIdx].phones) membersData[mIdx].phones = []; membersData[mIdx].phones[pIdx] = val; db.ref('members').set(membersData); }
+function deletePhone(mIdx, pIdx) { membersData[mIdx].phones.splice(pIdx, 1); db.ref('members').set(membersData); }
+function cycleMonthState(memberIdx, monthName) { if(!membersData[memberIdx].monthsStates) membersData[memberIdx].monthsStates = {}; let currentState = membersData[memberIdx].monthsStates[monthName] || 0; let nextState = (currentState + 1) % 3; membersData[memberIdx].monthsStates[monthName] = nextState; db.ref('members').set(membersData); }
+function updateM(i, f, v) { membersData[i][f] = v; db.ref('members').set(membersData); }
+function addFamilyMember(mIdx) { if(!membersData[mIdx].family) membersData[mIdx].family = []; membersData[mIdx].family.push(""); db.ref('members').set(membersData); }
+function updateFamily(mIdx, fIdx, val) { membersData[mIdx].family[fIdx] = val; db.ref('members').set(membersData); }
+function deleteFamilyMember(mIdx, fIdx) { membersData[mIdx].family.splice(fIdx, 1); db.ref('members').set(membersData); }
+function deleteM(i) { if(confirm("حذف العضو بالكامل؟")) { membersData.splice(i,1); db.ref('members').set(membersData); } }
+function uploadBannerPhoto(input) { if (input.files && input.files[0]) { const reader = new FileReader(); reader.onload = function(e) { db.ref('bannerPhoto').set(e.target.result); }; reader.readAsDataURL(input.files[0]); } }
+function uploadSheikhPhoto(input) { if (input.files && input.files[0]) { const reader = new FileReader(); reader.onload = function(e) { db.ref('sheikhPhoto').set(e.target.result); }; reader.readAsDataURL(input.files[0]); } }
+window.onload = () => { updateUI(); };
 </script>
 </body>
 </html>
