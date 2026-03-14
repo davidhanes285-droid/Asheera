@@ -57,15 +57,18 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-
 
 .admin-bar { background: var(--primary-color); color: white; padding: 12px; text-align: center; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
 
-.stats-bar { padding: 20px 5%; display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; }
+.stats-bar { padding: 20px 5%; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
 .stat-item { 
-    text-align: center; min-width: 160px; padding: 15px; border-radius: 12px; 
-    box-shadow: 0 4px 6px rgba(0,0,0,0.05); font-weight: bold; color: var(--primary-color); 
-    background: white; border: 1px solid #ddd; flex: 1;
+    text-align: center; padding: 15px 5px; border-radius: 12px; 
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08); font-weight: bold; color: var(--primary-color); 
+    background: white; flex: 1; border-bottom: 5px solid #ddd;
 }
-.stat-item .val { font-size: 1.4em; font-weight: 900; display: block; margin-top: 5px; color: var(--secondary-color); }
+.stat-item .val { font-size: 1.3em; font-weight: 900; display: block; margin-top: 5px; }
 
-.item-final { background: var(--primary-color); color: white; border: none; }
+.item-prev { background-color: #e3f2fd; border-bottom-color: #2196f3; color: #1565c0; }
+.item-in { background-color: #e8f5e9; border-bottom-color: #4caf50; color: #2e7d32; }
+.item-out { background-color: #fff3e0; border-bottom-color: #ff9800; color: #e65100; }
+.item-final { background-color: var(--primary-color); border-bottom-color: var(--warning-color); color: white; }
 .item-final .val { color: var(--warning-color); }
 
 .info-banner { 
@@ -117,13 +120,43 @@ button { cursor: pointer; border: none; border-radius: 8px; padding: 10px 15px; 
 .btn-thanks { background: #25d366; color: white; width: 100%; margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; }
 
 .expense-log { font-size: 0.85em; background: rgba(255, 255, 255, 0.7); border: 1px solid rgba(0,0,0,0.1); padding: 8px; margin-top: 5px; border-radius: 6px; text-align: right; color: #333; }
-#expenseDisplay { margin-top: 10px; max-height: 200px; overflow-y: auto; padding: 5px; border-top: 1px dashed #ccc; }
+#expenseDisplay { margin-top: 5px; max-height: 150px; overflow-y: auto; padding: 2px; }
 
+/* --- تعديلات الموبايل: عرض كرتين بجانب بعض وتنسيق السطر العلوي --- */
 @media (max-width: 600px) {
-    .header-section { flex-direction: column; text-align: center; padding: 20px; }
-    .header-text { margin-bottom: 15px; }
-    .stat-item { min-width: 120px; padding: 10px; }
-    .months-grid { grid-template-columns: repeat(3, 1fr); }
+    .header-section { flex-direction: column; text-align: center; padding: 15px; }
+    
+    .stats-bar { 
+        padding: 10px 1%; 
+        gap: 4px; 
+        flex-wrap: nowrap;
+        justify-content: space-between;
+    }
+    
+    .stat-item { 
+        min-width: 0; 
+        padding: 8px 1px; 
+        font-size: 0.58em; 
+        border-radius: 6px;
+        border-bottom-width: 3px;
+    }
+    
+    .stat-item .val { font-size: 0.9em; margin-top: 2px; }
+
+    .member-list { gap: 10px; padding: 10px; }
+    .member-card { 
+        width: calc(50% - 15px); /* جعل الكرت يأخذ نصف الشاشة تقريباً لعرض كرتين */
+        padding: 10px; 
+        font-size: 0.75em;
+        border-radius: 10px;
+    }
+    .family-head-name { font-size: 1.05em; margin-bottom: 5px; }
+    .family-section { padding: 5px; margin-top: 5px; }
+    .months-grid { grid-template-columns: repeat(3, 1fr); gap: 3px; }
+    .month-btn { padding: 4px 1px; font-size: 0.65em; }
+    .progress-container { height: 5px; margin: 5px 0; }
+
+    #expenseDisplay { max-height: 90px; }
 }
 </style>
 </head>
@@ -150,16 +183,15 @@ button { cursor: pointer; border: none; border-radius: 8px; padding: 10px 15px; 
 </div>
 
 <div class="stats-bar">
-    <div class="stat-item">الرصيد السابق 2025<span id="prevBalanceVal" class="val">0</span>
+    <div class="stat-item item-prev">الرصيد السابق 2025<span id="prevBalanceVal" class="val">0</span>
         <div id="prevBalanceEdit" style="display:none; margin-top:5px;">
-            <input type="number" id="prevBalanceInput" class="edit-input" placeholder="المبلغ">
-            <button onclick="updatePrevBalance()" class="btn-save">حفظ</button>
+            <input type="number" id="prevBalanceInput" class="edit-input" style="padding:3px; font-size:0.8em;" placeholder="المبلغ">
+            <button onclick="updatePrevBalance()" class="btn-save" style="padding:3px; font-size:0.8em;">حفظ</button>
         </div>
     </div>
-    <div class="stat-item">مقبوضات 2026<span id="monthlyTotal" class="val">0</span></div>
+    <div class="stat-item item-in">مقبوضات 2026<span id="monthlyTotal" class="val">0</span></div>
     
-    <div class="stat-item">إجمالي المصروفات<span id="expenseTotal" class="val" style="color:var(--danger-color)">0</span>
-        <div style="font-size: 0.8em; margin-top: 10px; color: #555;">سجل الصرف والتاريخ:</div>
+    <div class="stat-item item-out">إجمالي المصروفات<span id="expenseTotal" class="val">0</span>
         <div id="expenseDisplay"></div>
     </div>
     
@@ -177,8 +209,8 @@ button { cursor: pointer; border: none; border-radius: 8px; padding: 10px 15px; 
 </div>
 
 <div class="info-banner">
-    <div>عدد المشتركين الكلي: <span id="totalPeopleCount" style="font-weight:bold; font-size:1.2em;">0</span></div>
-    <div>الشهر الحالي: <span id="currentDateDisplay" style="font-weight:bold; font-size:1.2em; color:var(--warning-color)">-</span></div>
+    <div>عدد المشتركين: <span id="totalPeopleCount" style="font-weight:bold;">0</span></div>
+    <div>الشهر: <span id="currentDateDisplay" style="font-weight:bold; color:var(--warning-color)">-</span></div>
 </div>
 
 <div class="search-container">
@@ -265,11 +297,10 @@ function updateUI() {
     expArray.forEach((e, idx) => {
         totalExp += Number(e.amount);
         expDiv.innerHTML += `
-            <div class="expense-log">
-                ${isAdmin ? `<button onclick="deleteExpense(${idx})" style="background:red; color:white; padding:2px 5px; font-size:10px; float:left; border-radius:3px;">حذف</button>` : ''}
-                <b>${Number(e.amount).toLocaleString()} د.ع</b><br>
-                <span>${e.note}</span><br>
-                <small style="color:#7f8c8d">${e.date}</small>
+            <div class="expense-log" style="font-size: 0.8em; margin-bottom: 2px; padding: 3px; background: rgba(255,255,255,0.4);">
+                ${isAdmin ? `<button onclick="deleteExpense(${idx})" style="background:red; color:white; padding:0px 3px; font-size:8px; float:left;">×</button>` : ''}
+                <b>${Number(e.amount).toLocaleString()}</b> - ${e.note} <br>
+                <small style="color:#555; font-size:0.85em;">📅 ${e.date}</small>
             </div>`;
     });
 
@@ -307,13 +338,13 @@ function render() {
             if(!isAdmin) {
                 card.innerHTML = `
                     <span class="family-head-name">${m.name}</span>
-                    <p style="margin:5px 0; font-size:0.9em;">👨‍👩‍👧‍👦 أفراد العائلة: <b>${totalInFamily}</b></p>
+                    <p style="margin:2px 0;">👪 عائلة: <b>${totalInFamily}</b></p>
                     <div class="family-section">
                         <small>الأسماء: ${m.family && m.family.length > 0 ? m.family.join(' - ') : 'فردي'}</small>
                     </div>
                     <div class="progress-container"><div class="progress-bar-fill" style="width:${progress}%"></div></div>
-                    <p style="font-size:0.85em;">المدفوع: <span style="color:green; font-weight:bold;">${paidMonths.join('، ') || 'لا يوجد'}</span></p>
-                    ${isUnpaid ? `<p style="font-size:0.85em; color:red; font-weight:bold;">المبلغ المطلوب حالياً: ${unpaidMonths.join('، ')}<br>المبلغ: ${(unpaidMonths.length * totalInFamily * 2000).toLocaleString()} د.ع</p>` : '<p style="color:green; font-weight:bold;">✅ تم الدفع شكراً لالتزامكم</p>'}
+                    <p style="font-size:0.85em; margin:2px 0;">المدفوع: <span style="color:green; font-weight:bold;">${paidMonths.join('، ') || 'لا يوجد'}</span></p>
+                    ${isUnpaid ? `<p style="font-size:0.85em; color:red; font-weight:bold; margin-top:5px;">المبلغ المطلوب لشهر ${unpaidMonths.join(' و ')} 2026<br>المبلغ: ${(unpaidMonths.length * totalInFamily * 2000).toLocaleString()} د.ع</p>` : '<p style="color:green; font-weight:bold; margin-top:5px;">✅ تم الدفع شكراً لالتزامكم</p>'}
                 `;
             } else {
                 let familyHtml = (m.family || []).map((f, fi) => `<div style="display:flex; gap:5px; margin-bottom:5px;"><input class="edit-input" style="margin:0" value="${f}" onchange="updateFamily(${i},${fi},this.value)"><button onclick="deleteFamily(${i},${fi})" style="background:red; color:white;">×</button></div>`).join('');
@@ -423,7 +454,7 @@ function sendWhatsApp(i) {
     msg += `الأخ العزيز: *${m.name}*%0A%0A`;
     if(paid.length > 0) msg += `✅ تم استلام اشتراك أشهر: (${paid.join(' - ')})%0A`;
     if(debt.length > 0) {
-        msg += `⚠️ المتبقي بذمتكم أشهر: (${debt.join(' - ')})%0A`;
+        msg += `⚠️ المتبقي بذمتكم أشهر: (${debt.join(' - ')}) لسنة 2026%0A`;
         msg += `💰 المبلغ المطلوب: *${debtAmount.toLocaleString()} دينار*%0A`;
     }
     msg += `%0Aشكراً لالتزامكم ودعمكم المستمر.%0A*إدارة الصندوق*`;
