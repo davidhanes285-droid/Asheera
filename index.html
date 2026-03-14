@@ -291,13 +291,10 @@ function render() {
     container.innerHTML = '';
 
     membersData.forEach((m, i) => {
-        // --- تطوير محرك البحث الذكي والمرن ---
-        const headName = (m.name || "").toLowerCase();
-        const familyNames = m.family ? m.family.join(' ').toLowerCase() : '';
-        const phonesStr = (m.phones ? m.phones.join(' ') : '') + (m.phone || '');
+        const familyStr = m.family ? m.family.join(' ') : '';
+        const phonesStr = m.phones ? m.phones.join(' ') : (m.phone || '');
         
-        // التحقق من وجود كلمة البحث في (الاسم، أفراد العائلة، أو أرقام الهاتف)
-        if(headName.includes(search) || familyNames.includes(search) || phonesStr.includes(search)) {
+        if(m.name.toLowerCase().includes(search) || familyStr.toLowerCase().includes(search) || phonesStr.includes(search)) {
             let paidMonths = [], unpaidMonths = [];
             monthsNames.forEach(mon => {
                 const state = (m.monthsStates && m.monthsStates[mon]) ? m.monthsStates[mon] : 0;
@@ -325,9 +322,7 @@ function render() {
                 `;
             } else {
                 let familyHtml = (m.family || []).map((f, fi) => `<div style="display:flex; gap:5px; margin-bottom:5px;"><input class="edit-input" style="margin:0" value="${f}" onchange="updateFamily(${i},${fi},this.value)"><button onclick="deleteFamily(${i},${fi})" style="background:red; color:white;">×</button></div>`).join('');
-                
-                // --- التعديل المطلوب: جعل رقم الهاتف يظهر من اليسار إلى اليمين ---
-                let phoneHtml = (m.phones || ['']).map((p, pi) => `<div style="display:flex; gap:5px; margin-bottom:5px;"><input class="edit-input" style="margin:0; direction: ltr; text-align: left;" value="${p}" onchange="updatePhone(${i},${pi},this.value)"><button onclick="deletePhone(${i},${pi})" style="background:red; color:white;">×</button></div>`).join('');
+                let phoneHtml = (m.phones || ['']).map((p, pi) => `<div style="display:flex; gap:5px; margin-bottom:5px;"><input class="edit-input" style="margin:0" value="${p}" onchange="updatePhone(${i},${pi},this.value)"><button onclick="deletePhone(${i},${pi})" style="background:red; color:white;">×</button></div>`).join('');
                 
                 let monthsHtml = `<div class="months-grid">`;
                 monthsNames.forEach(mon => {
